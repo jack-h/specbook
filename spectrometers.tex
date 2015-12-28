@@ -1,5 +1,7 @@
 \documentclass{article}
 
+\usepackage{graphicx}
+
 \begin{document}
 
 \section{Introduction}\label{introduction}
@@ -51,10 +53,10 @@ with adjacent and non-overlapping passband frequencies one can get a
 complete picture of the input signal's spectrum.
 
 \subsection{Autocorrelators}\label{autocorrelators}
-The power spectrum of a signal, $S(f)$,  is related to the signal's autocorrelation function, $R(\tau)$ at a number of time lags, $\tau$ by Fourier transform:
+The power spectrum of a signal, $S(f)$,  is related to the signal's autocorrelation function, $R(\tau)$, over a range of time lags, $\tau$, by Fourier transform:
 \begin{equation}
 \label{spec-from-autocorr}
- S(f) = \int_{-\infty}^{\infty} R(\tau)e^{-2\pi i \tau f} \,\mathrm{d}\tau .
+ S(f) = \int_{-\infty}^{\infty} R(\tau)e^{-2\pi i \tau f} \,\mathrm{d}\tau \,.
 \end{equation}
 
 Thus, if one can build a device to measure the autocorrelation function of a signal of interest, it is straightforward to obtain the signal's power spectrum.
@@ -62,12 +64,34 @@ When integrated over a time $T$, the autocorrelation of a signal specified by th
 
 \begin{equation}
 \label{autocorr}
- R(\tau) = \frac{1}{2T} \int_{0}^{T} v(t)v(t+\tau) \,\mathrm{d}t .
+ R(\tau) = \frac{1}{2T} \int_{-T}^{T} v(t)v(t+\tau) \,\mathrm{d}t \,.
+\end{equation}
+
+Since $v(t)$ is a real-valued function $R(\tau)$ is necessarily symmetric about positive and negative lags, so only one half need be measured. Furthermore, the symmetry of $R(\tau)$ means that the only contributions to $S(f)$ are from the even parts of the complex exponential in Equation \ref{spec-from-autocorr}. The computation of the power spectrum can then be reduced to:
+
+\begin{equation}
+\label{spec-from-autocorr-reduced}
+ S(f) = 2\int_{0}^{\infty} R(\tau)\cos{(2\pi \tau f)} \,\mathrm{d}\tau \,.
 \end{equation}
 
 
-
 \subsubsection{Analog Autocorrelators}\label{analog-autocorrelators}
+
+Analog correlators are those that measure the autocorrelation function (Equation \ref{autocorr}) using analog circuitry to implement multipliers and propagation times through carefully constructed delay lines to implement the desired tap delays.
+A typical schematic of an analog autocorrelator is shown in Figure \ref{fig:analog-autocorr}. Here, outputs of each correlator tap are digitized after a small amount of time-averaging. Further averaging can take place digitally before computation of the power spectrum via cosine transform.
+
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth]{./figures/analog-autocorr-crop.pdf}
+ % analog-autocorr-crop.pdf: 0x0 pixel, 0dpi, nanxnan cm, bb=
+ \label{fig:analog-autocorr}
+ \caption{An example implementation of an analog autocorrelator. The input signal is circulated in opposite directions down a pair of delay lines. The signal is tapped on each delay line at points separated by propagation delays of $\frac{\Delta t}{2}$. Each tap computes an element of the correlation with lag $\tau=n\Delta t$.}
+\end{figure}
+
+Figure \ref{fig:analog-autocorr} also indicates circuitry for modulating the input and outputs of the correlator. The pur
+
+Details of specific scientific deployments of analog autocorrelation spectrometers can be found in \cite{Erickson2007} and \cite{Harris1998}.
+
 
 \subsubsection{Digital Autocorrelators}\label{digital-autocorrelators}
 
@@ -93,5 +117,10 @@ second, determines the amount of bandwidth that can be unambiguoysly
 processed by an ADC. The Nyquist Theorem states that a band limited
 signal can be fully recovered when it is sampled at a rate that is twice
 the bandwidth. For example, a sample rate of 1 billion s
+
+\bibliographystyle{plain}
+\bibliography{spectrometers}
+
+%\bibliography{spectrometers.bib}
 
 \end{document}

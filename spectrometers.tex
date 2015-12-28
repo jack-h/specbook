@@ -1,0 +1,97 @@
+\documentclass{article}
+
+\begin{document}
+
+\section{Introduction}\label{introduction}
+
+\subsection{What is the purpose of a
+spectrometer?}\label{what-is-the-purpose-of-a-spectrometer}
+
+A \emph{spectrometer} is used to record and measure the spectral content
+of signals, such as radio waves received from astronomical sources.
+Analysis of the spectral content can reveal details of the radio sources
+themselves as well as properties of the intervening medium.
+Spectrometers can increase the signal to noise ratio (SNR) of a radio
+telescope through both integration and channelization.
+
+Integration increases the SNR because signal increases linearly with
+integration whereas noise increases as the square root with integration.
+Thus, integrating longer by a factor of N will increase SNR by a factor
+of sqrt(N).
+
+Channelization reduces the signal to noise of narrowband signals due to
+the fact that the noise power is divided equally across all spectral
+channels while the narrow band signal is confined to a comparatively
+smaller number of channels. For a sinusoidal signals, channelizing to N
+channels will reduce the per-channel noise power by a factor of N
+thereby increasing the per-channel SNR by a factor of N.
+
+\section{Spectrometer Technologies}\label{spectrometer-technologies}
+
+Spectrometers can be created in a number of ways. Most involve multiple
+measurements of narrow bands of the original signal, but some are more
+esoteric such as acousto-optic spectrometers.
+
+\subsection{Swept Spectrometer}\label{swept-spectrometer}
+
+A \emph{swept spectrometer} uses a variable oscillator with a heterodyne
+circuit and a low pass filter. The oscillator is typically varied,
+i.e.~swept, through a range of desired frequencies. As it is swept
+through the desired frequency range, the power of the low pass filter's
+output is measured and recorded. Most analog spectrum analyzers operate
+in this manner.
+
+\subsection{Analog Filter Bank}\label{analog-filter-bank}
+
+An \emph{analog filter bank} is just what it's name implies: a bank (or
+collection) of analog filters. The analog filters are designed to pass
+through different ranges of frequencies. The power of the analog
+filters' output is measured and recorded. By creating a bank of filters
+with adjacent and non-overlapping passband frequencies one can get a
+complete picture of the input signal's spectrum.
+
+\subsection{Autocorrelators}\label{autocorrelators}
+The power spectrum of a signal, $S(f)$,  is related to the signal's autocorrelation function, $R(\tau)$ at a number of time lags, $\tau$ by Fourier transform:
+\begin{equation}
+\label{spec-from-autocorr}
+ S(f) = \int_{-\infty}^{\infty} R(\tau)e^{-2\pi i \tau f} \,\mathrm{d}\tau .
+\end{equation}
+
+Thus, if one can build a device to measure the autocorrelation function of a signal of interest, it is straightforward to obtain the signal's power spectrum.
+When integrated over a time $T$, the autocorrelation of a signal specified by the time-varying voltage $v(t)$ is defined by 
+
+\begin{equation}
+\label{autocorr}
+ R(\tau) = \frac{1}{2T} \int_{0}^{T} v(t)v(t+\tau) \,\mathrm{d}t .
+\end{equation}
+
+
+
+\subsubsection{Analog Autocorrelators}\label{analog-autocorrelators}
+
+\subsubsection{Digital Autocorrelators}\label{digital-autocorrelators}
+
+\subsection{Acousto-Optic}\label{acousto-optic}
+
+\subsection{Hybrid Analog-Digital}\label{hybrid-analog-digital}
+
+\subsection{Digital FFT}\label{digital-fft}
+
+\section{Analog to Digital
+Converters}\label{analog-to-digital-converters}
+
+As their name implies, \emph{analog to digital converters} (ADCs)
+convert analog signals into digital signals. The two main
+characteristics of an ADC are its sample rate and tbe number of bits per
+sample.
+
+The ADC converts an analog voltage into a numeric quantity and then
+repeats the process. The numeric quantities are called \emph{samples}.
+The rate at which the ADC performs conversions is called the
+\emph{sample rate}. The sample rate, usually expressed in samples per
+second, determines the amount of bandwidth that can be unambiguoysly
+processed by an ADC. The Nyquist Theorem states that a band limited
+signal can be fully recovered when it is sampled at a rate that is twice
+the bandwidth. For example, a sample rate of 1 billion s
+
+\end{document}

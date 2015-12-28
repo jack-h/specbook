@@ -74,11 +74,15 @@ Since $v(t)$ is a real-valued function $R(\tau)$ is necessarily symmetric about 
  S(f) = 2\int_{0}^{\infty} R(\tau)\cos{(2\pi \tau f)} \,\mathrm{d}\tau \,.
 \end{equation}
 
+Regardless of autocorrelator implementation, it is invariably the case that Equation \ref{spec-from-autocorr-reduced} is computed for only a discrete range of delays, $\tau$. In much the same way as the sampling rate of an analog signal determines how much bandwidth can be processed unambiguously (see Section \ref{analog-to-digital-converters}) the spacing of lags in an autocorrelator determines how much bandwidth it can process without aliasing occuring. In the case of an autocorrelator the Nyquist criterion is satisfied when there are two taps per wave period at the highest frequency (shortest wavelength) signal of interest. 
+
 
 \subsubsection{Analog Autocorrelators}\label{analog-autocorrelators}
 
 Analog correlators are those that measure the autocorrelation function (Equation \ref{autocorr}) using analog circuitry to implement multipliers and propagation times through carefully constructed delay lines to implement the desired tap delays.
 A typical schematic of an analog autocorrelator is shown in Figure \ref{fig:analog-autocorr}. Here, outputs of each correlator tap are digitized after a small amount of time-averaging. Further averaging can take place digitally before computation of the power spectrum via cosine transform. Details of specific scientific deployments of analog autocorrelation spectrometers can be found in \cite{Erickson2007} and \cite{Harris1998}.
+
+The main advantage of the analog autocorrelator over its digital counterpart (see Section \ref{digital-autocorrelators}) is that digitization need only take place at a rate commensurate with the averaging period of the correlator, rather than the bandwidth of the input signals. For this reason, analog autocorrelation spectrometers are usually seen in systems that have instantaneous bandwidths of many gigahertz which cannot be readily digitized by commercially available ADCs.
 
 
 \begin{figure}
@@ -97,11 +101,12 @@ Figure \ref{fig:analog-autocorr} also indicates circuitry for modulating the inp
 The last term is equal to the output of a multiplier, while the first two terms represent unwanted parts of the diode response. These unwanted terms can be eliminated by periodically alternating the sign of one of the inputs $v_1$ or $v_2$. This has no effect on the unwanted terms, but causes the last term to alternate sign. If, prior to time averaging, the sign of the diode output is flipped synchronously with the input then the unwanted terms will, up to a noise contribution, be removed.
 
 In general, the principal of modulating the desired part of a signal and then synchronously demodulating to cancel out unwanted contributions can be used to surpress a variety of unwanted effects in radio receivers, such as gain variation and cross-coupling. An operating telescope may have multiple such switching systems operating concurrantly at different frequencies targetting different effects. See, for example, \cite{Erickson2007}. 
- 
-
 
 
 \subsubsection{Digital Autocorrelators}\label{digital-autocorrelators}
+Digital autocorrelators implement the autocorrelators delay-and-multiply circuitry using digital delays -- shift registers -- and digital multiplier cores to compute signal products. As a result, digital correlators can have much more predictable performance than their analog counterparts whose processing is subject to small errors in delay line lengths and other subtle analog effects. In contrast, provided signals in a digital autocorrelator can be digitised with adequate signal-to-noise and linearity the downstream autocorrelation computation can be regarded as possesing perfect precision.
+
+Digital systems are usually prefered when the bandwidth to be processed is within the capabilities of commercially available ADC chips. However, if the number of frequency channels desired is large an FFT-based spectrometer may be preferable to an autocorrelation system. FFT spectrometers are described more fully in Section \ref{digital-fft} and can be inplemented with vastly lower computational overhead, at the cost of increased design complexity.
 
 \subsection{Acousto-Optic}\label{acousto-optic}
 

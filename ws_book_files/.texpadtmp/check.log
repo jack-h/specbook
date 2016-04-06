@@ -1,0 +1,76 @@
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  5 APR 2016 17:49
+entering extended mode
+ restricted \write18 enabled.
+ file:line:error style messages enabled.
+ %&-line parsing enabled.
+**check.tex
+(./check.tex
+LaTeX2e <2011/06/27>
+Babel <3.9f> and hyphenation patterns for 78 languages loaded.
+*
+1. Searching for LaTeX2e ... 
+ ... ok
+ 
+2. Searching for LaTeX2e version ... 
+ ... ok
+ 
+3. Searching for ws-rv961x669.cls ... 
+ ... ok
+ 
+4. Searching for ws-crop961x669.sty ... 
+ ... ok
+ 
+5. Searching for crop.sty ... 
+ ... ok
+ 
+6. Searching for rotating.sty ... 
+ ... ok
+ 
+7. Searching for url.sty ... 
+ ... ok
+ 
+8. Searching for makeidx.sty ... 
+ ... ok
+ 
+9. Searching for chapterbib.sty ... 
+ ... ok
+ 
+10. Searching for cite.sty ... 
+ ... ok
+ 
+11. Searching for ws-minitoc.sty ... 
+ ... ok
+ 
+12. Searching for ws-rv-har.bst ... 
+ ... ok
+ 
+13. Searching for ws-rv-van.bst ... 
+ ... ok
+ 
+14. Searching for ws-index.sty ... 
+ ... ok
+ 
+* Finished Testing *
+ 
+******************************************************
+*
+* All the files and packages required by WS was found,
+* you may now proceed LaTeXing your files.
+*
+******************************************************
+ ) 
+Here is how much of TeX's memory you used:
+ 22 strings out of 493315
+ 341 string characters out of 6137904
+ 52158 words of memory out of 5000000
+ 3561 multiletter control sequences out of 15000+600000
+ 3640 words of font info for 14 fonts, out of 8000000 for 9000
+ 957 hyphenation exceptions out of 8191
+ 8i,1n,5p,121b,12s stack positions out of 5000i,500n,10000p,200000b,80000s
+
+No pages of output.
+PDF statistics:
+ 0 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

@@ -141,17 +141,33 @@ Van Vleck and Non-Linearities
 
 \subsection{Windowing functions}
 
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth]{./figures/window_fns}
+ \label{fig:window_fns}
+ \caption{Four common windowing functions ($w(n)$, top) and their corresponding squared Fourier transforms ($|W(k)|^2$, bottom). Outside of the range [0, $N-1$], the function $w(n)=0$ for all windows.}
+\end{figure}
+
 \begin{table}
-	\caption{Some common weighting functions used in FIR filter design. \label{tab:adc}}
-	\begin{tabular}{l l c c}
+	\caption{Some common weighting functions used in FIR filter design. Note that in this table, coefficients have been rounded to four significant digits. \label{tab:adc}}
+	\begin{tabular}{l l }
 	\hline
-	Weighting function      & $w(n)$                        & FWHM  & Peak sidelobe\\
+	Weighting function      & $w(n)$                        			\\
 	\hline
 	\hline
-	Uniform  (rectangular)   &  1                           & 1.21  &  -6.6 dB   \\
-	Bartlett (triangular)    &  $1 - (|n| / (N-1)$          & 1.21  &  -13.3 dB  \\
-	Hann                     & $0.5 - 0.5~cos(\frac{2\pi n}{N-1})$ & 2.00  &  -15.7 dB  \\
-	Hamming             & $ 0.54 - 0.46~cos(\frac{2\pi n}{N-1})$ & 1.82 & -21.4 dB \\
+	Uniform  (rectangular)   &  1                           			\\
+	Bartlett (triangular)    &  $1 - (|n| / (N-1)$               	\\
+	\hline
+	\emph{General form:}    & $a_0 - a_1~cos(\frac{2\pi n}{N-1})$ \\
+	Hann                     & $a_0=0.50 \quad a_1 = 0.50$ 	\\
+	Hamming             & $ a_0 = 0.54 \quad a_1 = 0.46$   	\\
+	\hline
+	
+	 \emph{General form:} &$a_0 - a_1~cos(\frac{2\pi n}{N-1}) + a_2~cos(\frac{4\pi n}{N-1}) -
+	 					   a_3~cos(\frac{6\pi n}{N-1}) $	 \\
+	 Nutall          & $a_0=0.3558\quad a_1=0.4874\quad a_2=0.1442\quad a_3=0.0126$ \\
+	 Blackman-Nutall & $a_0=0.3636\quad a_1=0.4892\quad a_2=0.1366\quad a_3=0.0106$ \\
+	 Blackman-Harris & $a_0=0.3588\quad a_1=0.4883\quad a_2=0.1413\quad a_3=0.0117$ \\
 	\hline
 	\end{tabular}
 

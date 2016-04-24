@@ -12,6 +12,7 @@
 \usepackage{ws-rv-van}     % numbered citation/references (default)
 \usepackage{ws-rv-thm}     % comment this line when `amsthm / theorem / ntheorem` package is used
 \usepackage{subfigure}     % required only when side-by-side / subfigures are used
+\usepackage{caption}
 %\usepackage{ws-index}     % required only when multiple indexes are used
 \makeindex
 %\newindex{aindx}{adx}{and}{Author Index}       % author index
@@ -70,7 +71,7 @@ S_{xx}(k)=\left\langle \left|X(k)\right|^{2}\right\rangle ,\label{eq:discrete-po
 \end{equation}
 where $X(k)$ denotes the Discrete Fourier Transform (DFT) of $x(t)$:
 \begin{equation}
-X(k)=\sum_{n=0}^{N}x(n)e^{-2\pi ink/N}
+X(k)=\sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N}
 \end{equation}
 
 There are therefore two distinct classes of spectrometers: ones that approximate $S_{xx}(k)$ by firstly forming the autocorrelation, then taking a Fourier transform ala Eq.~\ref{eq:discrete-wiener}, and those that first convert into the frequency domain to form $X(k)$ before evaulating Eq.~\ref{eq:discrete-pow}.
@@ -114,7 +115,7 @@ where in addition to measuring the PSD of $x(t)$ and $y(t)$, we also compute the
 
 The four terms $\langle E_x E_x^*\rangle$, $\langle E_y E_y^* \rangle$, $\langle E_x E_y^* \rangle$, and $\langle E_y E_x^* \rangle$ are then linearly related (by calibration factors) to the quantities in Eq.~\ref{eq:sxx1}-\ref{eq:sxx4} above. Combining these quantities therefore allows for Stokes $I$, $Q$, $U$ and $V$ to be determined.
 
-In order to focus on the fundamental characteristics of spectrometers, the remainder of this chapter focuses on single-polarization systems that compute only $S_{xx}$. Nevertheless, the techniques and characterization approaches as detailed here are broadly applicable to polarimetry systems.
+In order to focus on the fundamental characteristics of spectrometers, the remainder of this chapter details single-polarization systems that compute only $S_{xx}$. Nevertheless, the techniques and characterization approaches are broadly applicable to polarimetry systems.
 
 \subsection{Radiometry and signal to noise}
 
@@ -131,7 +132,7 @@ Channelization reduces the signal to noise of narrowband signals due to the fact
 
 \section{Digital systems}
 
-
+Digital signal processing (DSP) techniques are well-suited to applications such as filtering and forming filterbanks; as such, a majority of current-day spectrometers are based on digital technology. This section gives a short overview of DSP techniques; I refer the reader unfamiliar with digital signal processing to the excellent \citet{bookLyonsDSP} and \citet{BookSmithDSP}. A comprehensive overview of polyphase filters is given by \citet{Vaidyanathan:1990p6127}, and in Chapter~2 of \citet{BookHarrisMultirateDSP}; I will give a brief introduction here. In the diagrams that follow, the symbol $\otimes$ denotes multiplication of time samples, and $\oplus$ denotes addition. The symbol $z^{-n}$ is used to denote a time delay of \emph{n} units, and the symbol $\downarrow D$ is used for downsampling by a factor \emph{D} and $\uparrow U$ for upsampling by a factor \emph{U}.
 
 \subsection{Digital sampling}
 
@@ -151,15 +152,54 @@ Van Vleck and Non-Linearities
 
 \subsection{Windowing functions}
 
-\begin{figure}
+The DFT is computed over a finite number of samples, $N$, also known as the \emph{window length}. As the window length is not infinite, the response of the DFT is not perfect, reesulting in a phenomenon known as spectral leakage. This can be understood if we consider
+\begin{eqnarray}
+X(k) & = & \sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N} \\
+     & = &  \sum_{n=-\infty}^{\infty} \Pi (n)x(n)e^{-2\pi ink/N}\\
+     & = & \mathcal{F}\{\Pi(n)\}*X'(k)
+\end{eqnarray}
+where $\mathcal{F}$ denotes the Fourier transform, and $\Pi(n)$ the rectangle (or tophat) function:
+\begin{equation}
+\Pi(n) = \begin{cases}
+	0 & \mbox{if } n < 0 \\
+	1 & \mbox{if } 0 \leq n \leq N-1 \\
+	0 & \mbox{if } n > N-1. \\
+\end{cases}	
+\end{equation}
+which is Fourier paired with the sinc() function\footnote{This is the same relationship as that between light passing through a single slit aperture and its far-field diffraction pattern}. In other words, we can consider the finite length of the DFT as effectively convolving the perfect Fourier transform response $X'(k)$ with a sinc function.  
+
+Windowing functions\citet{SvenGade1987} improve the response of a DFT, by somewhat mitigating this intrinsic sinc response. They are applied by multiplying the signal $x(n)$ by a weighting function, $w(n)$:
+\begin{eqnarray}
+X_w(k) & = & \sum_{n=0}^{N-1}w(n)x(n)e^{-2\pi ink/N} \\
+       & = & W(k)*X(k).
+\end{eqnarray}
+The take-home message of all this is that DFT channels have a non-zero response outside their passband (Fig.~\ref{fig:fft_resp}), and that applying a windowing function can improve their response.
+
+Windowing functions are also important in the design of digital filters (see Section~\ref{sec:filters}). Some common windowing functions and their frequency-domain magnitude responses are shown in Fig.~\ref{fig:window_fns}; their functional forms are given in Tab.~\ref{tab:window_fns}. The most appropriate windowing function is dependent upon application; for digital spectrometers, the Hamming and Hann windows are commonly applied.
+
+\begin{figure}[t]
  \centering
- \includegraphics[width=\textwidth]{./figures/window_fns}
- \label{fig:window_fns}
- \caption{Four common windowing functions ($w(n)$, top) and their corresponding squared Fourier transforms ($|W(k)|^2$, bottom). Outside of the range [0, $N-1$], the function $w(n)=0$ for all windows.}
+ \includegraphics[width=\textwidth]{./figures/fft_resp}
+ 
+ \caption{Amplitude response of the DFT, compared to amplitude response of a Hann-windowed DFT. \label{fig:fft_resp}}
 \end{figure}
 
+\begin{figure}[t]
+ \centering
+ \includegraphics[width=\textwidth]{./figures/window_fns}
+ \caption{Four common windowing functions ($w(n)$, top) and their corresponding squared Fourier transforms ($|W(k)|^2$, bottom). Outside of the range [0, $N-1$], the function $w(n)=0$ for all windows. \label{fig:window_fns}}
+\end{figure}
+
+A more dramatic improvement may be achieved by using an lowpass filter frontend before the DFT \citep{Bellanger:1976p7898}, to form what is known as a polyphase filterbank (PFB). This approach is detailed further in the following section. 
+
+%Figure~\ref{fig:PFB-num-taps} compares the spectral response of a standard DFT (`vanilla'), Hamming windowed DFT, and polyphase filterbank, for a single channel. An example showing a 16-channel, 4-tap Hamming window-based polyphase filterbank is shown in Figure~\ref{fig:PFB-8tap-16ch-example}.
+
+%A filterbank is simply a collection of filters, a simple example being a highpass and lowpass filter pair. I discuss here filterbanks where each filter has identical passband characteristics and evenly spaced central frequencies, such as the 16 channel filterbank shown in Figure~\ref{fig:PFB-8tap-16ch-example}. This equally spaced form is the most commonly implemented for radio astronomy applications. 
+
+
+
 \begin{table}
-	\caption{Some common weighting functions used in FIR filter design. Note that in this table, coefficients have been rounded to four significant digits. \label{tab:adc}}
+	\caption{Some common windowing functions, used in digital filters and DFT filterbanks. Note that in this table, coefficients have been rounded to four significant digits. \label{tab:window_fns}}
 	\begin{tabular}{l l }
 	\hline
 	Weighting function      & $w(n)$                        			\\
@@ -183,31 +223,8 @@ Van Vleck and Non-Linearities
 
 \end{table}
 
-The spectral response of an FTF spectrometer can be improved by windowing the data before performing the DFT; in ACS architectures a windowing function may be applied after the autocorrelation step. An in-depth discussion of windowing functions is given in \citet{SvenGade1987}. 
 
-For filterbanks, the Hamming and Hann windows are commonly applied windowing functions. The Hamming window has coefficients given by
-\begin{equation}
-w(n)=\mbox{0.54}-\mbox{0.46}cos\left(\frac{\mbox{2}\pi n}{N-1}\right),
-\end{equation}
-which are optimized to minimize the level of the first sidelobe. These coefficients are similar to those of the Hann window%
-\footnote{Named after Julius von Hann, but often erroneously referred to as
-`Hanning'.%
-}:
-\begin{equation}
-w(n)=\mbox{0.5}(\mbox{1}-cos\left(\frac{\mbox{2}\pi n}{N-1}\right),
-\end{equation}
-which offers faster sidelobe rolloff, but a higher first-sidelobe
-level. 
-
-A more dramatic improvement may be achieved by using an lowpass filter frontend before the DFT \citep{Bellanger:1976p7898}, to form what is known as a polyphase filterbank (PFB). This approach is detailed further in the following section. Figure~\ref{fig:PFB-num-taps} compares the spectral response of a standard DFT (`vanilla'), Hamming windowed DFT, and polyphase filterbank, for a single channel. An example showing a 16-channel, 4-tap Hamming window-based polyphase filterbank is shown in Figure~\ref{fig:PFB-8tap-16ch-example}.
-
-A filterbank is simply a collection of filters, a simple example being a highpass and lowpass filter pair. I discuss here filterbanks where each filter has identical passband characteristics and evenly spaced central frequencies, such as the 16 channel filterbank shown in Figure~\ref{fig:PFB-8tap-16ch-example}. This equally spaced form is the most commonly implemented for radio astronomy applications. 
-
-This section begins with a short overview of digital filtering techniques; I refer the reader unfamiliar with digital signal processing to the excellent \citet{bookLyonsDSP} and \citet{BookSmithDSP}. A comprehensive overview of polyphase filters is given by \citet{Vaidyanathan:1990p6127}, and in Chapter~2 of \citet{BookHarrisMultirateDSP}; I will give a brief introduction here. In the diagrams that follow, the symbol $\otimes$ denotes multiplication of time samples, and $\oplus$ denotes addition. The symbol $z^{-n}$ is used to denote a time delay of \emph{n} units, and the symbol $\downarrow D$ is used for downsampling by a factor \emph{D} and $\uparrow U$ for upsampling by a factor \emph{U}.
-
-
-
-\subsection{Finite impulse response filters}
+\subsection{Finite impulse response filters}\label{sec:filters}
 
 A finite impulse response (FIR) filter is the windowed moving average of an input sequence $x(t)$. An FIR filter computes the sum 
 \begin{equation} 

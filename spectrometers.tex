@@ -83,53 +83,63 @@ Analysis and synthesis filterbanks have many applications outside of astronomy, 
 
 \subsection{Polarimetry}
 
-Polarization is a key measurement within astronomy; textbooks such as \citet{BookTinbergenPolarim} are devoted to the subject.  Although most astrophysical radio emission is noise-like and thus inherently unpolarized, a number of radio sources -- such as pulsars and masers -- do emit polarized radiation, and effects such as Faraday rotation by a galaxy's magnetic field can yield polarized signals. Measuring polarization as a function of frequency can elucidate information about the source itself, and/or the medium between the source and observer. 
+Polarization is a key measurement within astronomy; textbooks such as \citet{BookTinbergenPolarim} are devoted to the subject.  Although most astrophysical radio emission is noise-like and thus inherently unpolarized, a number of radio sources --- such as pulsars and masers --- do emit polarized radiation, and effects such as Faraday rotation by a galaxy's magnetic field can yield polarized signals. A spectrometer that also measures polarization is known as a \emph{polarimeter} (or spectropolarimeter).
 
-Most radio telescopes consist of a pair of orthogonal antennas, each of which is sensitive to a single polarization. 
+\subsubsection{Stokes parameters}
 
-The Stokes parameters are a set of quantities which fully describe the polarization state of an electromagnetic wave. These four parameters, $I$, $Q$, $U$ and $V$, are related to the amplitudes of perpendicular components of the electric field.
+The Stokes parameters are a set of four quantities which fully describe the polarization state of an electromagnetic wave; this is what a polarimeter must measure. The four Stokes parameters, $I$, $Q$, $U$ and $V$, are related to the amplitudes of perpendicular components of the electric field:
 \begin{eqnarray}
 E_{x} & = & e_{x}(t)cos(\omega t+\delta_{x})\\
 E_{y} & = & e_{y}(t)cos(\omega t+\delta_{y})
 \end{eqnarray}
-by time averages of these electric field parameters:
+by time averages of the electric field parameters:
 \begin{eqnarray}
 I & = & \left\langle E_{x}E_{x}^{*}+E_{y}E_{y}^{*}\right\rangle \\
 Q & = & \left\langle E_{x}E_{x}^{*}-E_{y}E_{y}^{*}\right\rangle \\
 U & = & \left\langle E_{x}E_{y}^{*}+E_{y}E_{x}^{*}\right\rangle \\
 V & = & i\left\langle E_{x}E_{y}^{*}-E_{y}E_{x}^{*}\right\rangle 
 \end{eqnarray}
-The parameter $I$ is a measure of the total power in the wave, $Q$
-and $U$ represent the linearly polarised components, and $V$ represents
-the circularly polarised component. The Stokes parameters have the
-dimensions of flux density, and they combine additively for independent
-waves. See Figure~\ref{fig:Polarization} for a diagram.
+where $*$ represents conjugation. The parameter $I$ is a measure of the total power in the wave, $Q$ and $U$ represent the linearly polarised components, and $V$ represents the circularly polarised component. The Stokes parameters have the dimensions of flux density, and they combine additively for independent waves.
+
+\subsubsection{Measuring polarization products}
+
+In order to compute polarization products, a spectrometer must be presented with two voltage signals, $x(t)$ and $y(t)$, from a dual-polarization feed (i.e. a set of orthogonal antennas). With analogy to Eq.~\ref{eq:discrete-pow}, we may form 
+\begin{eqnarray}
+S_{xx}(k) & =  \langle X(k)X^*(k)\rangle  & = \langle |X(k)|^2\rangle \label{eq:sxx1} \\
+S_{yy}(k) & =  \langle Y(k)Y^*(k)\rangle  & = \langle |Y(k)|^2\rangle \\
+S_{xy}(k) & =  \langle X(k)Y^*(k)\rangle  & \\
+S_{yx}(k) & =  \langle Y(k)X^*(k)\rangle  & \label{eq:sxx4}
+\end{eqnarray}
+where in addition to measuring the PSD of $x(t)$ and $y(t)$, we also compute their cross correlations.  
+
+The four terms $\langle E_x E_x^*\rangle$, $\langle E_y E_y^* \rangle$, $\langle E_x E_y^* \rangle$, and $\langle E_y E_x^* \rangle$ are then linearly related (by calibration factors) to the quantities in Eq.~\ref{eq:sxx1}-\ref{eq:sxx4} above. Combining these quantities therefore allows for Stokes $I$, $Q$, $U$ and $V$ to be determined.
+
+In order to focus on the fundamental characteristics of spectrometers, the remainder of this chapter focuses on single-polarization systems that compute only $S_{xx}$. Nevertheless, the techniques and characterization approaches as detailed here are broadly applicable to polarimetry systems.
 
 \subsection{Radiometry and signal to noise}
 
 Noise is inherent in any radio-frequency instrument. The system temperature, $T_{\rm{sys}}$, is a measure of the total noise of a telescope, including the noise contribution from the sky and antenna. To mitigate the effect of noise, one can take multiple measurements over bandwidth and time. The time it takes to reach a target root-mean-square noise temperature is then given by the ideal radiometer equation: 
 \begin{equation}
-\sigma_{T}=\frac{T_{sys}}{\sqrt{\mbox{2}n_{p}\Delta\nu t}},\label{eq:radiometer-eqn}
+\sigma_{T}=\frac{T_{sys}}{\sqrt{\Delta\nu t}},\label{eq:radiometer-eqn}
 \end{equation}
-where $n_{p}$ is the number of polarizations, and $\tau$ is integration time. The smallest detectable signal $T_{S}$ is given by $T_{S}=m\Delta T$, where $m$ is a threshold value, generally greater than or equal to 3. 
+where $t$ is integration time. The smallest detectable signal $T_{S}$ is given by $T_{S}=m\sigma_T$, where $m$ is a threshold value, generally greater than or equal to 3. 
 
-Spectrometers can increase the signal to noise ratio (SNR) of a radio telescope through both integration and channelization. Integration increases the SNR because signal increases linearly with integration whereas noise increases as the square root with integration. Thus, integrating longer by a factor of N will increase SNR by a factor of $\sqrt{N}$.
+Spectrometers can increase the signal to noise ratio (SNR) of a radio telescope through both integration and channelization. Integration increases the SNR because signal increases linearly with integration whereas noise increases as the square root with integration. Thus, integrating longer by a factor of N will increase SNR by a factor of $\sqrt{N}$, as shown in Eq.~\ref{eq:radiometer-eqn}.
 
-Channelization reduces the signal to noise of narrowband signals due to the fact that the noise power is divided equally across all spectral channels while the narrow band signal is confined to a comparatively smaller number of channels. For a sinusoidal signals, channelizing to N channels will reduce the per-channel noise power by a factor of N thereby increasing the per-channel SNR by a factor of N.
+Channelization reduces the signal to noise of narrowband signals due to the fact that the noise power will be divided equally across spectral channels, while the narrowband signal is confined to a comparatively fewer channels. For sinusoidal signals, channelizing to N channels will reduce the per-channel noise power by a factor of N, thereby increasing the per-channel SNR by a factor of N.
 
 
 \section{Digital systems}
 
-The first class are called lag-autocorrelators, or auto-correlation spectrometers (ACS). The second class are known as Fourier transform filterbanks (FTF).
-
-There are two distinct classes of digital spectrometers: ones that approximate $S_{xx}(k)$ through numerical approximation to Equation~\ref{eq:discrete-wiener}, and those that evaulate Equation~\ref{eq:discrete-pow}. The first class are called lag-autocorrelators, or auto-correlation spectrometers (ACS). The second class are known as a discrete Fourier transform filterbanks (FTF).  
 
 
 \subsection{Digital sampling}
 
-As their name implies, \emph{analog to digital converters} (ADCs) convert analog signals into digital signals. The two main characteristics of an ADC are its sample rate and tbe number of bits per sample.
+Digital sampling, or \emph{digitization}, is the process of converting an analog signal to a digital one. As their name implies, \emph{analog to digital converters} (ADCs) do this conversion. The two main characteristics of an ADC are its sample rate, $f_{\rm{s}}$, and the number of bits per sample, $n_{\rm{b}}$.
 
-The ADC converts an analog voltage into a numeric quantity and then repeats the process. The numeric quantities are called \emph{samples}. The rate at which the ADC performs conversions is called the \emph{sample rate}. The sample rate, usually expressed in samples per second, determines the amount of bandwidth that can be unambiguoysly processed by an ADC. The Nyquist Theorem states that a band limited signal can be fully recovered when it is sampled at a rate that is twice the bandwidth. For example, a sample rate of 1 billion s
+The ADC converts an analog voltage waveform into a series of numeric quantities called \emph{samples}. The sample rate determines the amount of bandwidth that can be unambiguously processed by an ADC. The Nyquist Theorem --- one of the most fundamental theorems within signal processing --- states that a band-limited signal may be fully recovered when it is sampled at a rate that is twice the bandwidth, $f_{\rm{s}} = 2 \Delta\nu$; the Nyquist rate is therefore dependent upon a given signal's bandwidth. For example, a sample rate of 2 billion samples per second allows a band-limited signal with a bandwidth of 1~GHz to be digitized. Sampling at the  Nyquist rate is referred to as \emph{critical sampling}, under the Nyquist rate as \emph{undersampling}, and sampling over the Nyquist rate as \emph{oversampling}.
+
+Undersampling a signal causes an effect known as \emph{aliasing} to occur, whereby different parts of a signal are indistinguishable from each other, resulting in information loss. Note that oversampling a signal does not increase the information content, but under certain circumstances is advantageous for reducing noise and/or distortion.
 
 \subsubsection{Quantization efficiency}
 
@@ -252,6 +262,10 @@ Decimating polyphase filter structures are more efficient than standard FIR filt
 
 The first digital spectrometer used for radio astronomy was developed by \citet{Weinreb:1963p10042}. This 1-bit ACS was used to observe the 18-cm wavelength hydroxyl (OH) absorption line in the spectrum of Cassiopeia A, providing the first evidence of OH in the interstellar medium \citep{Weinreb:1963p9992}. The first reference to FTF spectrometers for radio astronomy can be found in \citet{Chikada:1987p10044}; however FTF spectrometers did not enjoy widespread adoption until much later. This is due to implementation issues, such as increased data output rates as compared to ACS implementations; see \citet{Bunton2000}, for a discussion of these issues.
 
+The first class are called lag-autocorrelators, or auto-correlation spectrometers (ACS). The second class are known as Fourier transform filterbanks (FTF).
+
+There are two distinct classes of digital spectrometers: ones that approximate $S_{xx}(k)$ through numerical approximation to Equation~\ref{eq:discrete-wiener}, and those that evaulate Equation~\ref{eq:discrete-pow}. The first class are called lag-autocorrelators, or auto-correlation spectrometers (ACS). The second class are known as a discrete Fourier transform filterbanks (FTF).  
+
 
 \subsection{Performance characteristics}
 
@@ -344,6 +358,8 @@ This polyphase filterbank (PFB) structure was first proposed by \citet{Bellanger
  \label{fig:pfb_chart}
  \caption{}
 \end{figure}
+
+\subsubsection{Overlapping filterbanks}
 
 \subsection{Implementation comparison}
 

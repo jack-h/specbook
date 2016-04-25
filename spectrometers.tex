@@ -142,13 +142,44 @@ The ADC converts an analog voltage waveform into a series of numeric quantities 
 
 Undersampling a signal causes an effect known as \emph{aliasing} to occur, whereby different parts of a signal are indistinguishable from each other, resulting in information loss. Note that oversampling a signal does not increase the information content, but under certain circumstances is advantageous for reducing noise and/or distortion.
 
-\subsubsection{Quantization efficiency}
+\subsubsection{Quantization efficiency \label{sub:quant}}
 
-Van Vleck and Non-Linearities
+\begin{table}
+	\caption{Quantization efficiencies $\eta_Q$ for Nyquist sampling with different bit depths $N_{\rm{bits}}$. Table modified from Thompson et. al.\citep{Thompson:2007p8886}.\label{tab:quant_eff}}
+	\begin{center}
+	\begin{tabular}{c c c c}
+	\hline
+	$N_{\rm{bits}}$ & $N_{\rm{levels}}$ & $\varepsilon$ & $\eta_Q$ \\	\hline
+	\hline	2 & 4   & 0.995  & 0.88115 \\	3 & 8   & 0.586  & 0.96256 \\	4 & 16  & 0.335  & 0.98846 \\	5 & 32  & 0.188  & 0.99651 \\
+	6 & 64  & 0.104  & 0.99896 \\	7 & 128 & 0.0573 & 0.99970 \\	8 & 256 & 0.0312 & 0.99991 \\
+	\hline
+	\end{tabular}
+	\end{center}
+\end{table}
 
-\subsubsection{Dynamic range}
+The earliest digital correlators \citep{Weinreb:1963p10042} used only two-level sampling (one bit), assinging a value of either +1 or -1. This scheme works remarkably well for weak, noise-dominated signals\footnote{That is, we assume that the probability distribution of the signal is close to Gaussian.}: for Nyquist-sampled signals, a signal-to-noise ratio of $2/pi=0.637$ that of the unquantized signal is achievable [REF VAN VLECK 1966] (see Chapter 8 of TMS\citet{ThompsonMoranSwenson2004}). For 2-bit data, one can achieve 88\% quantization efficiency, which rises to 98\% for 4-bit data. Given these high values for low bit-widths, it is common to use bits sparingly within radio astronomy applications. A listing of quantization efficiencies\cite{Thompson:2007p8886} is given in Table~\ref{tab:quant_eff}.
+
+
+Achieving peak quantization efficiency relies on setting the threshold between quantized values optimally. In Table~\ref{tab:quant_eff}, the threshold $\varepsilon$ is expressed in units of the signal's standard deviation $\sigma$. In order to leave headroom for interfering signals, one may deliberately set $\varepsilon$ larger than that optimal for signals with Gaussian probabilities to increase dynamic range.
+
+
+\subsubsection{Dynamic range\label{sub:dynamic-range}}
+
+For modern-day radio environments, radio frequency interference (RFI) is the main driver of sampling bitwidth. RFI may be orders of magnitude stronger than an astronomical signal of interest, requiring a large dynamic range in the digitized waveform. If the maximum input power to an ADC is exceed, an effect known as \emph{clipping} will occur, in which spurious harmonics and non-linear response are introduced into the digitized waveform.
+
+The theoretical maximum dynamic range of an ADC in decibels is given by 
+\begin{equation}
+	DR = 20~Log_{10}(2^{N_{\rm{bits}}}) \approx 6.02 N_{\rm{bits}}
+\end{equation}
+in practice, as ADCs are imperfect analog devices, their effective number of bits (ENOB) is below this. For example, and 8-bit ADC may have an ENOB of 7.5, resulting in a dynamic range of 45~dB.
+
+\subsubsection{ADC Characteristics}
+
+[JACK TO WRITE OR DELETION]
 
 \subsubsection{Interleaving}
+
+[JACK TO WRITE OR DELETION]
 
 \subsection{Windowing functions}
 
@@ -238,6 +269,11 @@ y(mD)=\sum_{k=0}^{K-1}h(k)x(mD-k).\label{eq:FIR-filter-decimated}
 \end{equation}
 One way we can accomplish this is to use a polyphase decimating filter, which is discussed below. 
 
+\subsection{Digital mixing}
+
+Very brief intro to IF mixing, just required $e^{i w t}$ to be introduced for lowpass -> bandpass. [JACK MAYBE?]
+
+Also need to introduce the term *quadrature* for complex sampling.
 
 \subsection{Polyphase FIR filters}
 
@@ -485,11 +521,24 @@ What's Available Commercially
 
 \section{Examples}
 
+
+\subsection{Current technology}
+
+* table of digitizers
+
+* FPGA, CPU and GPU comparison
+
 \subsection{CASPER}
 
 * Fast Readout Spectrometers for Pulsar Timing and Search
 
 * Multibeam spectrometer systems
+
+\subsection{Example implementations}
+
+* HIPSR
+* Effelsberg?
+* Breakthrough listen
 
 \section{Conclusions}
 

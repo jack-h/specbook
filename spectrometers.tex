@@ -132,7 +132,7 @@ Channelization reduces the signal to noise of narrowband signals due to the fact
 
 \section{Digital systems}
 
-Digital signal processing (DSP) techniques are well-suited to applications such as filtering and forming filterbanks; as such, a majority of current-day spectrometers are based on digital technology. This section gives a short overview of DSP techniques; I refer the reader unfamiliar with digital signal processing to the excellent \citet{bookLyonsDSP} and \citet{BookSmithDSP}. A comprehensive overview of polyphase filters is given by \citet{Vaidyanathan:1990p6127}, and in Chapter~2 of \citet{BookHarrisMultirateDSP}; I will give a brief introduction here. In the diagrams that follow, the symbol $\otimes$ denotes multiplication of time samples, and $\oplus$ denotes addition. The symbol $z^{-n}$ is used to denote a time delay of \emph{n} units, and the symbol $\downarrow D$ is used for downsampling by a factor \emph{D} and $\uparrow U$ for upsampling by a factor \emph{U}.
+Digital signal processing (DSP) techniques are well-suited to applications such as filtering and forming filterbanks; as such, a majority of current-day spectrometers are based on digital technology. This section gives a short overview of DSP techniques; I refer the reader unfamiliar with digital signal processing to the excellent \citet{bookLyonsDSP} and \citet{BookSmithDSP}. 
 
 \subsection{Digital sampling}
 
@@ -165,7 +165,7 @@ Achieving peak quantization efficiency relies on setting the threshold between q
 
 \subsubsection{Dynamic range\label{sub:dynamic-range}}
 
-For modern-day radio environments, radio frequency interference (RFI) is the main driver of sampling bitwidth. RFI may be orders of magnitude stronger than an astronomical signal of interest, requiring a large dynamic range in the digitized waveform. If the maximum input power to an ADC is exceed, an effect known as \emph{clipping} will occur, in which spurious harmonics and non-linear response are introduced into the digitized waveform.
+For modern-day radio environments, radio frequency interference (RFI) is the main driver of sampling bitwidth. RFI may be orders of magnitude stronger than an astronomical signal of interest, requiring a large dynamic range in the digitized waveform. If the maximum input power to an ADC is exceeded, an effect known as \emph{clipping} will occur, in which the waveform is distorted and spurious harmonics are introduced into the digitized waveform.
 
 The theoretical maximum dynamic range of an ADC in decibels is given by 
 \begin{equation}
@@ -307,13 +307,15 @@ and has an output equivalent to a $\mbox{4}\times\mbox{7}=\mbox{28}$ tap standar
 Decimating polyphase filter structures are more efficient than standard FIR filter based downsampling techniques. If $\downarrow D$ downsampling occurs after the moving average of Equation~\ref{eq:FIR-filter}, we compute \emph{D} sums, but keep only 1 in \emph{D} of these. This is inefficient. In comparison, Equation~\ref{eq:FIR-polyphase-filter} only computes the output values that are of interest. A comparison of two decimating filters is shown in Figure~\ref{fig:polyphase-filters}. Figure~\ref{fig:polyphase-filterb} is a polyphase type structure, but decimation occurs after summation. Conversely, Figure~\ref{fig:polyphase-filterb} shows a more efficient implentation where decimation occurs before summation. By the noble identities (see \citep{Vaidyanathan:1990p6127}), the output of this second filter is identical to that in Figure~\ref{fig:polyphase-filterb}.
 
 
+A comprehensive overview of polyphase filters is given by \citet{Vaidyanathan:1990p6127}, and in Chapter~2 of \citet{BookHarrisMultirateDSP}; I will give a brief introduction here. In the diagrams that follow, the symbol $\otimes$ denotes multiplication of time samples, and $\oplus$ denotes addition. The symbol $z^{-n}$ is used to denote a time delay of \emph{n} units, and the symbol $\downarrow D$ is used for downsampling by a factor \emph{D} and $\uparrow U$ for upsampling by a factor \emph{U}.
+
 \subsection{The Fast Fourier Transform}
 
 * Radix 2 stuff
 
 \section{Digital spectrometers}
 
-The first digital spectrometer used for radio astronomy was developed by \citet{Weinreb:1963p10042}. This 1-bit ACS was used to observe the 18-cm wavelength hydroxyl (OH) absorption line in the spectrum of Cassiopeia A, providing the first evidence of OH in the interstellar medium \citep{Weinreb:1963p9992}. The first reference to FTF spectrometers for radio astronomy can be found in \citet{Chikada:1987p10044}; however FTF spectrometers did not enjoy widespread adoption until much later. This is due to implementation issues, such as increased data output rates as compared to ACS implementations; see \citet{Bunton2000}, for a discussion of these issues.
+The first digital spectrometer used for radio astronomy was developed by Weinreb\citet{Weinreb:1963p10042} in 1963. This 1-bit ACS was used to observe the 18-cm wavelength hydroxyl (OH) absorption line in the spectrum of Cassiopeia A, providing the first evidence of OH in the interstellar medium \citep{Weinreb:1963p9992}. The first reference to FTF spectrometers for radio astronomy can be found in \citet{Chikada:1987p10044}; however FTF spectrometers did not enjoy widespread adoption until much later. This is due to implementation issues, such as increased data output rates as compared to ACS implementations; see \citet{Bunton2000}, for a discussion of these issues.
 
 The first class are called lag-autocorrelators, or auto-correlation spectrometers (ACS). The second class are known as Fourier transform filterbanks (FTF).
 
@@ -322,18 +324,25 @@ There are two distinct classes of digital spectrometers: ones that approximate $
 
 \subsection{Performance characteristics}
 
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth]{./figures/pfb_scalloping}
+ \label{fig:scalloping}
+ \caption{Example of scalloping loss between spectrometer channels. The dashed lines show the response of individual channels, while the black line shows the overall response.}
+\end{figure}
+
 * Spectral leakage
 * Scalloping loss
 * Time resolution
 * Dynamic range
 
-\subsection{Autocorrelation spectrometers}
+\subsection{Autocorrelation spectrometers}\label{sub:acs}
 
 Digital autocorrelators implement the autocorrelators delay-and-multiply circuitry using digital delays -- shift registers -- and digital multiplier cores to compute signal products. As a result, digital correlators can have much more predictable performance than their analog counterparts whose processing is subject to small errors in delay line lengths and other subtle analog effects. In contrast, provided signals in a digital autocorrelator can be digitised with adequate signal-to-noise and linearity the downstream autocorrelation computation can be regarded as possesing perfect precision.
 
 Digital systems are usually prefered when the bandwidth to be processed is within the capabilities of commercially available ADC chips. However, if the number of frequency channels desired is large an FFT-based spectrometer may be preferable to an autocorrelation system. FFT spectrometers are described more fully in Section \ref{digital-fft} and can be inplemented with vastly lower computational overhead, at the cost of increased design complexity.
 
-\subsection{Fourier transform spectrometers}
+\subsection{Fourier transform spectrometers}\label{sub:ftf}
 
 A time-domain signal $v(t)$ may be spectrally decomposed using a Fourier Transform, defined by:
 
@@ -361,7 +370,7 @@ In the case that samples $v_n$ are regularly spaced in time (which they almost i
 
 
 
-\subsection{Polyphase filterbanks}
+\subsection{Polyphase filterbanks}\label{sub:pfb}
 
 In comparison to both ACS and FTF architectures, polyphase filterbanks offer vastly improved interchannel isolation. For radio astronomy
 purposes, high interchannel isolation is important so that spectral features are not smeared out, and so the spectrometer is more resilient to the high levels of radio frequency interference (RFI) emitted from terrestrial sources. Polyphase filterbanks are therefore the best candidate for radio astronomy spectrometers, if computationally affordable.
@@ -505,18 +514,6 @@ In general, the principal of modulating the desired part of a signal and then sy
 
 
 
-\section{Spectrometer design considerations}
-
-\subsection{Technology choice}
-What's Available Commercially
-
-\begin{itemize}
-	\item GPU
-    \item CPU
-    \item ASIC
-    \item FPGA
-    \item Heterogeneous	
-\end{itemize}
 
 
 \section{Examples}
@@ -528,11 +525,25 @@ What's Available Commercially
 
 * FPGA, CPU and GPU comparison
 
-\subsection{CASPER}
+What's Available Commercially
+
+\begin{itemize}
+	\item GPU
+    \item CPU
+    \item ASIC
+    \item FPGA
+    \item Heterogeneous	
+\end{itemize}
+
+
+\subsection{GnuRadio}
+
+\subsection{CASPER Hardware}
 
 * Fast Readout Spectrometers for Pulsar Timing and Search
 
 * Multibeam spectrometer systems
+
 
 \subsection{Example implementations}
 

@@ -29,7 +29,7 @@ Address goes here, \\
 dancpr@berkeley.edu}
 
 \begin{abstract}
-This review gives an introduction to spectrometers and discusses their use within radio astronomy. While a variety of technologies are introduced, particular emphasis is given to digital systems, with details of current-generation implementations given as examples. Three different types of digital spectrometers are discussed: autocorrelation spectrometers (ACS), Fourier transform spectrometers (FTF), and polyphase filterbank spectrometers (PFB). The relative advantages and disadvantages of each technology are compared and contrasted. 
+This review gives an introduction to spectrometers and discusses their use within radio astronomy. While a variety of technologies are introduced, particular emphasis is given to digital systems, with details of current-generation implementations given as examples. Three different types of digital spectrometers are discussed: autocorrelation spectrometers (ACS), Fourier transform spectrometers (FTF, Sec.~\ref{sub:ftf}), and polyphase filterbank spectrometers (PFB).  Given their growing ubiquity, polyphase filterbanks are detailed at length. The relative advantages and disadvantages of spectrometer technology are compared and contrasted, and implementation considerations are presented.
 
 \end{abstract}
 
@@ -39,10 +39,10 @@ This review gives an introduction to spectrometers and discusses their use withi
 
 \section{Introduction}\label{introduction}
 
-A \emph{spectrometer} is a device used to record and measure the spectral content of signals, such as radio waves received from astronomical sources. Specifically, a spectrometer measures the power spectral density (PSD, commonly known as \emph{power spectrum}) of a signal. Analysis of spectral content can reveal details of radio sources, as well as properties of the intervening medium. For example, spectral line emission from simple molecules such as neutral hydrogen gives rise to narrowband radio signals (Fig.~1), while continuum emission from active galactic nuclei gives rise to wideband signals.
+A \emph{spectrometer} is a device used to record and measure the spectral content of signals, such as radio waves received from astronomical sources. Specifically, a spectrometer measures the power spectral density (PSD, measured in units of $\rm{WHz}^{-1}$) of a signal. Analysis of spectral content can reveal details of radio sources, as well as properties of the intervening medium. For example, spectral line emission from simple molecules such as neutral hydrogen gives rise to narrowband radio signals (Fig.~1), while continuum emission from active galactic nuclei gives rise to wideband signals.
 
 
-There are two main ways in which the PSD of a signal may be computed. The PSD, $S_{xx}$, of a waveform and its autocorrelation function,  $r_{xx}$, are related by the Wiener-Khinchin theorem. This theorem states that the relationship between a stationary (mean and variance do not change over time), ergodic (well-behaved over time) signal $x(t)$, its PSD, and its autocorrelation is given by
+There are two main ways in which the PSD --- commonly known as \emph{power spectrum} --- of a signal may be computed. The power spectrum, $S_{xx}$, of a waveform and its autocorrelation function,  $r_{xx}$, are related by the Wiener-Khinchin theorem. This theorem states that the relationship between a stationary (mean and variance do not change over time), ergodic (well-behaved over time) signal $x(t)$, its PSD, and its autocorrelation is given by
 \begin{equation}
 S_{xx}(\nu)=\int_{-\infty}^{\infty}r_{xx}(\tau)e^{-2\pi i\nu\tau}d\tau.
 \label{eq:psd}
@@ -53,7 +53,7 @@ r_{xx}(\tau)=\left\langle x(t)x(t-\tau)\right\rangle,
 \end{equation}
 where angled brackets refer to averaging over time. 
 
-\begin{figure}
+\begin{figure}[t]
  \centering
  \includegraphics[width=\textwidth]{./figures/hydrogen.pdf}
  % analog-autocorr-crop.pdf: 0x0 pixel, 0dpi, nanxnan cm, bb=
@@ -74,7 +74,7 @@ where $X(k)$ denotes the Discrete Fourier Transform (DFT) of $x(t)$:
 X(k)=\sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N}
 \end{equation}
 
-There are therefore two distinct classes of spectrometers: ones that approximate $S_{xx}(k)$ by firstly forming the autocorrelation, then taking a Fourier transform ala Eq.~\ref{eq:discrete-wiener}, and those that first convert into the frequency domain to form $X(k)$ before evaulating Eq.~\ref{eq:discrete-pow}.
+There are therefore two distinct classes of spectrometers: ones that approximate $S_{xx}(k)$ by firstly forming the autocorrelation, then taking a Fourier transform ala Eq.~\ref{eq:discrete-wiener}, and those that first convert into the frequency domain to form $X(k)$ before evaulating Eq.~\ref{eq:discrete-pow}. We will refer to these as autocorrelation spectrometers (ACS, Sec.~\ref{sub:acs}), and Fourier transform filterbanks (FTF, Sec.~\ref{sub:ftf}), respectively. Polyphase filterbank spectrometers (PFB, Sec.~\ref{sub:pfb}) can be thought of as an  FTF with enhanced filter response.
 
 \subsection{Analysis and synthesis filterbanks}
 
@@ -84,7 +84,7 @@ Analysis and synthesis filterbanks have many applications outside of astronomy, 
 
 \subsection{Polarimetry}
 
-Polarization is a key measurement within astronomy; textbooks such as \citet{BookTinbergenPolarim} are devoted to the subject.  Although most astrophysical radio emission is noise-like and thus inherently unpolarized, a number of radio sources --- such as pulsars and masers --- do emit polarized radiation, and effects such as Faraday rotation by a galaxy's magnetic field can yield polarized signals. A spectrometer that also measures polarization is known as a \emph{polarimeter} (or spectropolarimeter).
+Polarization\citet{BookTinbergenPolarim} is a key measurement within radio astronomy. Although most astrophysical radio emission is inherently unpolarized, a number of radio sources --- such as pulsars and masers --- do emit polarized radiation, and effects such as Faraday rotation by a galactic magnetic fields can yield polarized signals. A spectrometer that also measures polarization is known as a \emph{polarimeter} (or spectropolarimeter).
 
 \subsubsection{Stokes parameters}
 
@@ -111,34 +111,65 @@ S_{yy}(k) & =  \langle Y(k)Y^*(k)\rangle  & = \langle |Y(k)|^2\rangle \\
 S_{xy}(k) & =  \langle X(k)Y^*(k)\rangle  & \\
 S_{yx}(k) & =  \langle Y(k)X^*(k)\rangle  & \label{eq:sxx4}
 \end{eqnarray}
-where in addition to measuring the PSD of $x(t)$ and $y(t)$, we also compute their cross correlations.  
+where in addition to measuring the PSD of $x(t)$ and $y(t)$, we also compute their cross correlations.  Note that while $S_{xx}$ and $S_{yy}$ are real valued, $S_{xy}$ and $S_{yx}$ are complex valued.
 
-The four terms $\langle E_x E_x^*\rangle$, $\langle E_y E_y^* \rangle$, $\langle E_x E_y^* \rangle$, and $\langle E_y E_x^* \rangle$ are then linearly related (by calibration factors) to the quantities in Eq.~\ref{eq:sxx1}-\ref{eq:sxx4} above. Combining these quantities therefore allows for Stokes $I$, $Q$, $U$ and $V$ to be determined.
+The four terms $\langle E_x E_x^*\rangle$, $\langle E_y E_y^* \rangle$, $\langle E_x E_y^* \rangle$, and $\langle E_y E_x^* \rangle$ are linearly related (by calibration factors) to the quantities in Eq.~\ref{eq:sxx1}-\ref{eq:sxx4} above. Combining these therefore allows for Stokes $I$, $Q$, $U$ and $V$ to be determined.
 
 In order to focus on the fundamental characteristics of spectrometers, the remainder of this chapter details single-polarization systems that compute only $S_{xx}$. Nevertheless, the techniques and characterization approaches are broadly applicable to polarimetry systems.
 
-\subsection{Radiometry and signal to noise}
+%\subsection{Radiometry and signal to noise}
 
-Noise is inherent in any radio-frequency instrument. The system temperature, $T_{\rm{sys}}$, is a measure of the total noise of a telescope, including the noise contribution from the sky and antenna. To mitigate the effect of noise, one can take multiple measurements over bandwidth and time. The time it takes to reach a target root-mean-square noise temperature is then given by the ideal radiometer equation: 
-\begin{equation}
-\sigma_{T}=\frac{T_{sys}}{\sqrt{\Delta\nu t}},\label{eq:radiometer-eqn}
-\end{equation}
-where $t$ is integration time. The smallest detectable signal $T_{S}$ is given by $T_{S}=m\sigma_T$, where $m$ is a threshold value, generally greater than or equal to 3. 
+%Noise is inherent in any radio-frequency instrument. The system temperature, $T_{\rm{sys}}$, is a measure of the total noise of a telescope, including the noise contribution from the sky and antenna. To mitigate the effect of noise, one can take multiple measurements over bandwidth and time. The time it takes to reach a target root-mean-square noise temperature is then given by the ideal radiometer equation: 
+%\begin{equation}
+%\sigma_{T}=\frac{T_{sys}}{\sqrt{\Delta\nu t}},\label{eq:radiometer-eqn}
+%\end{equation}
+%where $t$ is integration time. The smallest detectable signal $T_{S}$ is given by $T_{S}=m\sigma_T$, where $m$ is a threshold value, generally greater than or equal to 3. 
 
-Spectrometers can increase the signal to noise ratio (SNR) of a radio telescope through both integration and channelization. Integration increases the SNR because signal increases linearly with integration whereas noise increases as the square root with integration. Thus, integrating longer by a factor of N will increase SNR by a factor of $\sqrt{N}$, as shown in Eq.~\ref{eq:radiometer-eqn}.
+%Spectrometers can increase the signal-to-noise ratio (SNR) of a radio telescope through both integration and channelization. Integration increases the SNR because signal increases linearly with integration whereas noise increases as the square root with integration. Thus, integrating longer by a factor of N will increase SNR by a factor of $\sqrt{N}$, as shown in Eq.~\ref{eq:radiometer-eqn}.
 
-Channelization reduces the signal to noise of narrowband signals due to the fact that the noise power will be divided equally across spectral channels, while the narrowband signal is confined to a comparatively fewer channels. For sinusoidal signals, channelizing to N channels will reduce the per-channel noise power by a factor of N, thereby increasing the per-channel SNR by a factor of N.
+%Channelization reduces the signal to noise of narrowband signals due to the fact that the noise power will be divided equally across spectral channels, while the narrowband signal is confined to a comparatively fewer channels. For sinusoidal signals, channelizing to N channels will reduce the per-channel noise power by a factor of N, thereby increasing the per-channel SNR by a factor of N.
+
+\subsection{Performance characteristics}
+
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth]{./figures/fb_comparison}
+ \label{fig:pfb_response}
+ \caption{Comparison of the filter response of a, ACS (dotted line), FTF (dashed line) and an 8-tap, Hann-windowed PFB (solid line).\label{fig:leakage}}
+\end{figure}
+
+There are several important characteristics to consider when comparing spectrometer implementations. Spectrometers operate over a finite bandwidth $B$, over which $N$ channels with bandwidth $\Delta\nu = B/N$ are computed. With digital filters, it is possible for each channel to be evenly spaced and to have identical filter shapes. 
+
+Ideally, each channel would have unitary response over $\nu_c \pm \frac{\Delta\nu}{2}$, where $\nu_c$ is the center frequency, with zero response outside this passband. In practice, this cannot be achieved; each channel has a non-zero response over all frequencies. Fig.~\ref{fig:leakage} compares the normalized filter response for ACS, FTF and PFB implementations. As such, a signal will `leak' between neighboring channels, known as \emph{spectral leakage}. In the presence of strong narrowband signals, such as radio interference (RFI), spectral leakage is a major concern.
+
+A related concern is that the channel's non-ideal shape will cause narrowband signals at channel edges to be attenuated, an effect known as scalloping loss (Fig.~\ref{fig:scalloping}). Spectrometers are often designed such that neighboring channels overlap at their full-width at half-maximum points (FWHM), in which case the signal will be spread evenly over both channels. Wideband signals are not affected by scalloping. 
+
+Two other important factors are 1) the minimum and maximum integration times, $t_{\rm{min}}$ and $t_{\rm{max}}$, over which a spectrometer may operate, and 2) the dynamic range (DR), the span of powers over which a spectrometer can operate nominally. These factors are generally enforced by hardware limitations. Detection of transient phenomena, such as fast radio bursts (FRBs [REF]) and pulsars, require $t_{\rm{min}}$ to be as short as a nanosecond. The presence of RFI is often the main driver for  dynamic range; see Sec.~\ref{sub:dynamic-range}.
+
+For implementation on current technology, PFB spectrometers offer the least scalloping loss and spectral leakage, so are in most instances preferable to FTF and ACS implementations. A comparison of architectures is given in \ref{sub:comparison}.
+
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth]{./figures/pfb_scalloping}
+ \caption{Example of scalloping loss between spectrometer channels. The dashed lines show the response of individual channels, while the black line shows the overall response.\label{fig:scalloping}}
+\end{figure}
 
 
 \section{Digital systems}
 
 Digital signal processing (DSP) techniques are well-suited to applications such as filtering and forming filterbanks; as such, a majority of current-day spectrometers are based on digital technology. This section gives a short overview of DSP techniques; I refer the reader unfamiliar with digital signal processing to the excellent \citet{bookLyonsDSP} and \citet{BookSmithDSP}. 
 
+In the diagrams and equations that follow, the symbol $\otimes$ denotes multiplication of time samples, and $\oplus$ denotes addition. The symbol $z^{-n}$ is used to denote a time delay of \emph{n} units, and the symbol $\downarrow D$ is used for downsampling by a factor \emph{D} and $\uparrow U$ for upsampling by a factor \emph{U}.
+
+
 \subsection{Digital sampling}
 
-Digital sampling, or \emph{digitization}, is the process of converting an analog signal to a digital one. As their name implies, \emph{analog to digital converters} (ADCs) do this conversion. The two main characteristics of an ADC are its sample rate, $f_{\rm{s}}$, and the number of bits per sample, $n_{\rm{b}}$.
+Digital sampling, or \emph{digitization}, is the process of converting an analog signal to a digital one. As their name implies, analog to digital converters (ADCs) do this conversion. The two main characteristics of an ADC are its sample rate, $\nu_{\rm{s}}$, and the number of bits per sample, $N_{\rm{b}}$.
 
-The ADC converts an analog voltage waveform into a series of numeric quantities called \emph{samples}. The sample rate determines the amount of bandwidth that can be unambiguously processed by an ADC. The Nyquist Theorem --- one of the most fundamental theorems within signal processing --- states that a band-limited signal may be fully recovered when it is sampled at a rate that is twice the bandwidth, $f_{\rm{s}} = 2 \Delta\nu$; the Nyquist rate is therefore dependent upon a given signal's bandwidth. For example, a sample rate of 2 billion samples per second allows a band-limited signal with a bandwidth of 1~GHz to be digitized. Sampling at the  Nyquist rate is referred to as \emph{critical sampling}, under the Nyquist rate as \emph{undersampling}, and sampling over the Nyquist rate as \emph{oversampling}.
+The ADC converts an analog voltage waveform into a series of numeric quantities called \emph{samples}. The sample rate determines the amount of bandwidth that can be unambiguously processed by an ADC. The Nyquist Theorem --- one of the most fundamental theorems within signal processing --- states that a band-limited signal may be fully recovered when it is sampled at a rate that is twice the bandwidth, $\nu_{\rm{s}} = 2 B$. 
+% the Nyquist rate is therefore dependent upon a given signal's bandwidth. 
+%For example, a sample rate of 2 billion samples per second allows a band-limited signal with a bandwidth of 1~GHz to be digitized. 
+Sampling at the  Nyquist rate is referred to as \emph{critical sampling}, under the Nyquist rate as \emph{undersampling}, and sampling over the Nyquist rate as \emph{oversampling}.
 
 Undersampling a signal causes an effect known as \emph{aliasing} to occur, whereby different parts of a signal are indistinguishable from each other, resulting in information loss. Note that oversampling a signal does not increase the information content, but under certain circumstances is advantageous for reducing noise and/or distortion.
 
@@ -157,7 +188,7 @@ Undersampling a signal causes an effect known as \emph{aliasing} to occur, where
 	\end{center}
 \end{table}
 
-The earliest digital correlators \citep{Weinreb:1963p10042} used only two-level sampling (one bit), assinging a value of either +1 or -1. This scheme works remarkably well for weak, noise-dominated signals\footnote{That is, we assume that the probability distribution of the signal is close to Gaussian.}: for Nyquist-sampled signals, a signal-to-noise ratio of $2/pi=0.637$ that of the unquantized signal is achievable [REF VAN VLECK 1966] (see Chapter 8 of TMS\citet{ThompsonMoranSwenson2004}). For 2-bit data, one can achieve 88\% quantization efficiency, which rises to 98\% for 4-bit data. Given these high values for low bit-widths, it is common to use bits sparingly within radio astronomy applications. A listing of quantization efficiencies\cite{Thompson:2007p8886} is given in Table~\ref{tab:quant_eff}.
+The earliest digital correlators \citep{Weinreb:1963p10042} used only two-level sampling (one bit), assigning a value of either +1 or -1. This scheme works remarkably well for weak, noise-dominated signals\footnote{That is, we assume that the probability distribution of the signal is close to Gaussian.}: for Nyquist-sampled signals, a signal-to-noise ratio of $2/\pi=0.637$ that of the unquantized signal is achievable [REF VAN VLECK 1966] (see Chapter 8 of TMS\citet{ThompsonMoranSwenson2004}). For 2-bit data, one can achieve 88\% quantization efficiency, which rises to 98\% for 4-bit data. Given these high values for low bit-widths, it is common to use bits sparingly within radio astronomy applications. A listing of quantization efficiencies\cite{Thompson:2007p8886} is given in Table~\ref{tab:quant_eff}.
 
 
 Achieving peak quantization efficiency relies on setting the threshold between quantized values optimally. In Table~\ref{tab:quant_eff}, the threshold $\varepsilon$ is expressed in units of the signal's standard deviation $\sigma$. In order to leave headroom for interfering signals, one may deliberately set $\varepsilon$ larger than that optimal for signals with Gaussian probabilities to increase dynamic range.
@@ -165,25 +196,25 @@ Achieving peak quantization efficiency relies on setting the threshold between q
 
 \subsubsection{Dynamic range\label{sub:dynamic-range}}
 
-For modern-day radio environments, radio frequency interference (RFI) is the main driver of sampling bitwidth. RFI may be orders of magnitude stronger than an astronomical signal of interest, requiring a large dynamic range in the digitized waveform. If the maximum input power to an ADC is exceeded, an effect known as \emph{clipping} will occur, in which the waveform is distorted and spurious harmonics are introduced into the digitized waveform.
+For modern-day radio environments, RFI is the main driver of sampling bitwidth. RFI may be orders of magnitude stronger than an astronomical signal of interest, requiring a large dynamic range in the digitized waveform. If the maximum input power to an ADC is exceeded, an effect known as \emph{clipping} will occur, in which the waveform is distorted and spurious harmonics are introduced into the digitized waveform.
 
 The theoretical maximum dynamic range of an ADC in decibels is given by 
 \begin{equation}
 	DR = 20~Log_{10}(2^{N_{\rm{bits}}}) \approx 6.02 N_{\rm{bits}}
 \end{equation}
-in practice, as ADCs are imperfect analog devices, their effective number of bits (ENOB) is below this. For example, and 8-bit ADC may have an ENOB of 7.5, resulting in a dynamic range of 45~dB.
+in practice, as ADCs are imperfect analog devices, their effective number of bits (ENOB) is below this. For example, an 8-bit ADC may have an ENOB of 7.5, resulting in a dynamic range of 45~dB.
 
-\subsubsection{ADC Characteristics}
+%\subsubsection{ADC Characteristics}
 
-[JACK TO WRITE OR DELETION]
+%[JACK TO WRITE OR DELETION]
 
-\subsubsection{Interleaving}
+%\subsubsection{Interleaving}
 
-[JACK TO WRITE OR DELETION]
+%[JACK TO WRITE OR DELETION]
 
 \subsection{Windowing functions}
 
-The DFT is computed over a finite number of samples, $N$, also known as the \emph{window length}. As the window length is not infinite, the response of the DFT is not perfect, reesulting in a phenomenon known as spectral leakage. This can be understood if we consider
+The DFT is computed over a finite number of samples, $N$, also known as the \emph{window length}. As the window length is not infinite, the response of the DFT is not perfect, resulting in spectral leakage (Fig.~\ref{fig:leakage}). This can be understood if we consider that the DFT
 \begin{eqnarray}
 X(k) & = & \sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N} \\
      & = &  \sum_{n=-\infty}^{\infty} \Pi (n)x(n)e^{-2\pi ink/N}\\
@@ -194,19 +225,19 @@ where $\mathcal{F}$ denotes the Fourier transform, and $\Pi(n)$ the rectangle (o
 \Pi(n) = \begin{cases}
 	0 & \mbox{if } n < 0 \\
 	1 & \mbox{if } 0 \leq n \leq N-1 \\
-	0 & \mbox{if } n > N-1. \\
+	0 & \mbox{if } n > N-1, \\
 \end{cases}	
 \end{equation}
-which is Fourier paired with the sinc() function\footnote{This is the same relationship as that between light passing through a single slit aperture and its far-field diffraction pattern}. In other words, we can consider the finite length of the DFT as effectively convolving the perfect Fourier transform response $X'(k)$ with a sinc function.  
+which is Fourier paired with the sinc() function\footnote{This is the same relationship as that between light passing through a single slit aperture and its far-field diffraction pattern}. In other words, we can consider the finite length of the DFT as effectively convolving the perfect Fourier transform response $X'(k)$ with a sinc function. The undesirable peaks of the sinc function are referred to as \emph{sidelobes}.
 
-Windowing functions\citet{SvenGade1987} improve the response of a DFT, by somewhat mitigating this intrinsic sinc response. They are applied by multiplying the signal $x(n)$ by a weighting function, $w(n)$:
+Windowing functions\citet{SvenGade1987} improve the response of a DFT, by somewhat mitigating sidelobe response, at the expense of increasing the channel width. They are applied by multiplying the signal $x(n)$ by a weighting function, $w(n)$:
 \begin{eqnarray}
 X_w(k) & = & \sum_{n=0}^{N-1}w(n)x(n)e^{-2\pi ink/N} \\
        & = & W(k)*X(k).
 \end{eqnarray}
-The take-home message of all this is that DFT channels have a non-zero response outside their passband (Fig.~\ref{fig:fft_resp}), and that applying a windowing function can improve their response.
+The take-home message of all this is that DFT channels have a non-zero response outside their passband (Fig.~\ref{fig:fft_resp}), and that applying a windowing function can improve their response. 
 
-Windowing functions are also important in the design of digital filters (see Section~\ref{sec:filters}). Some common windowing functions and their frequency-domain magnitude responses are shown in Fig.~\ref{fig:window_fns}; their functional forms are given in Tab.~\ref{tab:window_fns}. The most appropriate windowing function is dependent upon application; for digital spectrometers, the Hamming and Hann windows are commonly applied.
+Windowing functions are also important in the design of digital filters (Sec.~\ref{sec:filters}). Some common windowing functions and their frequency-domain magnitude responses are shown in Fig.~\ref{fig:window_fns}; their functional forms are given in Tab.~\ref{tab:window_fns}. The most appropriate windowing function is dependent upon application; for digital spectrometers, the Hamming and Hann windows are commonly applied.
 
 \begin{figure}[t]
  \centering
@@ -221,7 +252,7 @@ Windowing functions are also important in the design of digital filters (see Sec
  \caption{Four common windowing functions ($w(n)$, top) and their corresponding squared Fourier transforms ($|W(k)|^2$, bottom). Outside of the range [0, $N-1$], the function $w(n)=0$ for all windows. \label{fig:window_fns}}
 \end{figure}
 
-A more dramatic improvement may be achieved by using an lowpass filter frontend before the DFT \citep{Bellanger:1976p7898}, to form what is known as a polyphase filterbank (PFB). This approach is detailed further in the following section. 
+A more dramatic improvement may be achieved by using an lowpass filter frontend before the DFT \citep{Bellanger:1976p7898}, to form what is known as a polyphase filterbank. This approach is detailed further Sec.~\ref{sub:pfb}. 
 
 %Figure~\ref{fig:PFB-num-taps} compares the spectral response of a standard DFT (`vanilla'), Hamming windowed DFT, and polyphase filterbank, for a single channel. An example showing a 16-channel, 4-tap Hamming window-based polyphase filterbank is shown in Figure~\ref{fig:PFB-8tap-16ch-example}.
 
@@ -254,8 +285,29 @@ A more dramatic improvement may be achieved by using an lowpass filter frontend 
 
 \end{table}
 
+\subsection{Digital mixing and quadrature sampling}
+
+A common DSP task is to take a band-limited signal centered at a frequency $\nu_c$ and `mix' it down to baseband [EQN HERE]. Very brief intro to IF mixing, just required $e^{i w t}$ to be introduced for lowpass $->$ bandpass. [JACK MAYBE?]
+
+Also need to introduce the term *quadrature* for complex sampling, state that Nyquist rate is not broken.
+
+\subsection{Sample rate conversion}
+
+Upsampling and downsampling.
+
+\subsection{The z-transform}
+
+This is something I don't understand properly myself. Jack to explain why z-transform = delay?
 
 \subsection{Finite impulse response filters}\label{sec:filters}
+
+\begin{figure}
+ \centering
+ \includegraphics[width=0.8\textwidth]{./figures/fir_filter}
+ \label{fig:fir}
+ \caption{N-tap FIR filter block diagram. An FIR filter applies a weighted sum to the input sequence $x(t)$, outputting the filtered signal $y(t)$.}
+\end{figure}
+
 
 A finite impulse response (FIR) filter is the windowed moving average of an input sequence $x(t)$. An FIR filter computes the sum 
 \begin{equation} 
@@ -269,13 +321,16 @@ y(mD)=\sum_{k=0}^{K-1}h(k)x(mD-k).\label{eq:FIR-filter-decimated}
 \end{equation}
 One way we can accomplish this is to use a polyphase decimating filter, which is discussed below. 
 
-\subsection{Digital mixing}
 
-Very brief intro to IF mixing, just required $e^{i w t}$ to be introduced for lowpass -> bandpass. [JACK MAYBE?]
-
-Also need to introduce the term *quadrature* for complex sampling.
 
 \subsection{Polyphase FIR filters}
+
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth]{./figures/pfb_taps}
+ \label{fig:pfb_taps}
+ \caption{Example illustrating the polyphase decomposition of the coefficients h(k) of a 64-tap FIR filter (left) into 8 sub-filters (right). Each sub-filter has 8 taps; that is, P=8 and M=8. These sub-filters may be re-combined in a suitable polyphase filter structure to form a filter with an impulse response equal to the original FIR filter (left).}
+\end{figure}
 
 A common technique in DSP is to decompose an input sequence $x(t)$ into a set
 \begin{equation}
@@ -304,10 +359,12 @@ y(t) & = & \sum_{m=0}^{7}h_{0}(m)x_{0}(t-m)+\sum_{m=0}^{7}h_{1}(m)x_{1}(t-m)\non
 \end{eqnarray}
 and has an output equivalent to a $\mbox{4}\times\mbox{7}=\mbox{28}$ tap standard FIR filter with 4:1 downsampling. 
 
-Decimating polyphase filter structures are more efficient than standard FIR filter based downsampling techniques. If $\downarrow D$ downsampling occurs after the moving average of Equation~\ref{eq:FIR-filter}, we compute \emph{D} sums, but keep only 1 in \emph{D} of these. This is inefficient. In comparison, Equation~\ref{eq:FIR-polyphase-filter} only computes the output values that are of interest. A comparison of two decimating filters is shown in Figure~\ref{fig:polyphase-filters}. Figure~\ref{fig:polyphase-filterb} is a polyphase type structure, but decimation occurs after summation. Conversely, Figure~\ref{fig:polyphase-filterb} shows a more efficient implentation where decimation occurs before summation. By the noble identities (see \citep{Vaidyanathan:1990p6127}), the output of this second filter is identical to that in Figure~\ref{fig:polyphase-filterb}.
+Decimating polyphase filter structures are more efficient than standard FIR filter based downsampling techniques. If $\downarrow D$ downsampling occurs after the moving average of Equation~\ref{eq:FIR-filter}, we compute \emph{D} sums, but keep only 1 in \emph{D} of these. This is inefficient. In comparison, Equation~\ref{eq:FIR-polyphase-filter} only computes the output values that are of interest. 
+
+%A comparison of two decimating filters is shown in Figure~\ref{fig:polyphase-filters}. Figure~\ref{fig:polyphase-filterb} is a polyphase type structure, but decimation occurs after summation. Conversely, Figure~\ref{fig:polyphase-filterb} shows a more efficient implentation where decimation occurs before summation. By the noble identities (see \citep{Vaidyanathan:1990p6127}), the output of this second filter is identical to that in Figure~\ref{fig:polyphase-filterb}.
 
 
-A comprehensive overview of polyphase filters is given by \citet{Vaidyanathan:1990p6127}, and in Chapter~2 of \citet{BookHarrisMultirateDSP}; I will give a brief introduction here. In the diagrams that follow, the symbol $\otimes$ denotes multiplication of time samples, and $\oplus$ denotes addition. The symbol $z^{-n}$ is used to denote a time delay of \emph{n} units, and the symbol $\downarrow D$ is used for downsampling by a factor \emph{D} and $\uparrow U$ for upsampling by a factor \emph{U}.
+A comprehensive overview of polyphase filters is given by Vaidyanathan\citet{Vaidyanathan:1990p6127}, and in Chapter~2 of Harris\citet{BookHarrisMultirateDSP}; I will give a brief introduction here. 
 
 \subsection{The Fast Fourier Transform}
 
@@ -322,25 +379,17 @@ The first class are called lag-autocorrelators, or auto-correlation spectrometer
 There are two distinct classes of digital spectrometers: ones that approximate $S_{xx}(k)$ through numerical approximation to Equation~\ref{eq:discrete-wiener}, and those that evaulate Equation~\ref{eq:discrete-pow}. The first class are called lag-autocorrelators, or auto-correlation spectrometers (ACS). The second class are known as a discrete Fourier transform filterbanks (FTF).  
 
 
-\subsection{Performance characteristics}
-
-\begin{figure}
- \centering
- \includegraphics[width=\textwidth]{./figures/pfb_scalloping}
- \label{fig:scalloping}
- \caption{Example of scalloping loss between spectrometer channels. The dashed lines show the response of individual channels, while the black line shows the overall response.}
-\end{figure}
-
-* Spectral leakage
-* Scalloping loss
-* Time resolution
-* Dynamic range
 
 \subsection{Autocorrelation spectrometers}\label{sub:acs}
+
+Regardless of autocorrelator implementation, it is invariably the case that Equation \ref{spec-from-autocorr-reduced} is computed for only a discrete range of delays, $\tau$. In much the same way as the sampling rate of an analog signal determines how much bandwidth can be processed unambiguously (see Section \ref{analog-to-digital-converters}) the spacing of lags in an autocorrelator determines how much bandwidth it can process without aliasing occuring. In the case of an autocorrelator the Nyquist criterion is satisfied when there are two taps per wave period at the highest frequency (shortest wavelength) signal of interest. 
+
 
 Digital autocorrelators implement the autocorrelators delay-and-multiply circuitry using digital delays -- shift registers -- and digital multiplier cores to compute signal products. As a result, digital correlators can have much more predictable performance than their analog counterparts whose processing is subject to small errors in delay line lengths and other subtle analog effects. In contrast, provided signals in a digital autocorrelator can be digitised with adequate signal-to-noise and linearity the downstream autocorrelation computation can be regarded as possesing perfect precision.
 
 Digital systems are usually prefered when the bandwidth to be processed is within the capabilities of commercially available ADC chips. However, if the number of frequency channels desired is large an FFT-based spectrometer may be preferable to an autocorrelation system. FFT spectrometers are described more fully in Section \ref{digital-fft} and can be inplemented with vastly lower computational overhead, at the cost of increased design complexity.
+
+
 
 \subsection{Fourier transform spectrometers}\label{sub:ftf}
 
@@ -363,11 +412,6 @@ Equation \ref{dft} may be thought of as the mixing of the input signal with a ba
 In general, computing Equation \ref{dft} for each value of $f$ requires $N$ multiplications, and $N$ additions. Since $f$ can take $N$ independent values itself, the total cost of implementing a DFT filterbank is $N^2$ operations per transform. If one transform is computed for every $N$ samples digitized, then the computation rate is of order $F_sN$ operations each second, where $F_s$ is the sampling rate.
 
 In the case that samples $v_n$ are regularly spaced in time (which they almost invariably are) the Fast Fourier Transform (FFT, \cite{Cooley1965}) algorithm allows Equation \ref{dft} to be evaluated in $O(N\log_2(N))$ operations, or $F_s\log_2(N)$ if performed every $N$ samples. With computational savings of order $N / \log2{N}$ the FFT is an extraordinarily powerful algorithm, which is used heavily throughout radio astronomy. For a spectrometer of $~10^4$ channels, the FFT algorithm requires approximately $0.1\%$ as many operations as an autocorrelation spectrometer.
-
-
-
-
-
 
 
 \subsection{Polyphase filterbanks}\label{sub:pfb}
@@ -400,19 +444,8 @@ For real sampled data the negative frequencies contain no extra information, so 
 
 This polyphase filterbank (PFB) structure was first proposed by \citet{Bellanger:1976p7898}, and has been previously used in radio astronomy applications, see for example \citet{Zimmerman:1991p6933} and \citet{Parsons:2006p257}. The rest of this chapter discusses the implementation of a 8192 channel polyphase filterbank for radio astronomy, on Field Programmable Gate Array based digital hardware.
 
-\begin{figure}
- \centering
- \includegraphics[width=\textwidth]{./figures/pfb_resp}
- \label{fig:pfb_response}
- \caption{Comparison of the filter response of a FFT spectrometer channel (dotted line) to an 8-tap, Hann-windowed PFB (solid line).}
-\end{figure}
 
-\begin{figure}
- \centering
- \includegraphics[width=\textwidth]{./figures/pfb_taps}
- \label{fig:pfb_taps}
- \caption{Example illustrating the polyphase decomposition of the coefficients h(k) of a 64-tap FIR filter (left) into 8 sub-filters (right). Each sub-filter has 8 taps; that is, P=8 and M=8. These sub-filters may be re-combined in a suitable polyphase filter structure to form a filter with an impulse response equal to the original FIR filter (left).}
-\end{figure}
+
 
 \begin{figure}
  \centering
@@ -421,9 +454,16 @@ This polyphase filterbank (PFB) structure was first proposed by \citet{Bellanger
  \caption{}
 \end{figure}
 
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth]{./figures/pfb_fir_fft}
+ \label{fig:pfb_response}
+ \caption{Polyphase filterbank streaming implementation.}
+\end{figure}
+
 \subsubsection{Overlapping filterbanks}
 
-\subsection{Implementation comparison}
+\subsection{Implementation comparison}\label{sub:comparison}
 
 ACS and FTF architectures differ in both their spectral response and the number of computations required to implement them. For regularly
 sampled data, the Fast Fourier Transform (FFT) algorithm may be used to compute the DFT (see, for example, \citep{BookBrighamFFT}),
@@ -440,83 +480,86 @@ where $n_{t}$ is the number of samples per FFT or lag correlation. So in general
 
 \subsection{Swept spectrometer}\label{swept-spectrometer}
 
-\begin{figure}
- \centering
- \includegraphics[width=\textwidth]{./figures/temp_spec_an_diagram}
- % analog-autocorr-crop.pdf: 0x0 pixel, 0dpi, nanxnan cm, bb=
- \label{fig:swept-an}
- \caption{Swept spectrum analyzer block diagram, need to remake. We can't use this image because a) it's low quality and b) it's not ours. \label{fig:swept}}
-\end{figure}
+%\begin{figure}
+% \centering
+% \includegraphics[width=\textwidth]{./figures/temp_spec_an_diagram}
+% % analog-autocorr-crop.pdf: 0x0 pixel, 0dpi, nanxnan cm, bb=
+% \label{fig:swept-an}
+% \caption{Swept spectrum analyzer block diagram, need to remake. We can't use this image because a) it's low quality and b) it's not ours. \label{fig:swept}}
+%\end{figure}
 
 A \emph{swept spectrometer} uses a variable oscillator with a heterodyne
-circuit and a low pass filter (Fig.~\ref{fig:swept}). The oscillator is typically varied, i.e.~swept, through a range of desired frequencies. As it is swept through the desired frequency range, the power of the low pass filter's output is measured and recorded. Most analog spectrum analyzers operate in this manner.
+circuit and a low pass filter. The oscillator is typically varied, i.e.~swept, through a range of desired frequencies. As it is swept through the desired frequency range, the power of the low pass filter's output is measured and recorded. Most analog spectrum analyzers operate in this manner.
 
 An advantage of swept spectrometers is that they can operate over large RF bandwidths. However, as only a fraction of the band is detected at any one time, less integration time is available per frequency channel. For a swept spectrometer with $N$ channels with a sweep time of $t_{\rm{sweep}}$, the integration time available per channel is $t_{\rm{sweep}}/N$. It follows that  the RMS noise per channel is $\sqrt{N}$ higher than an equivalent filterbank spectrometer covering the entire RF bandwidth. As such, swept spectrometers are best suited for cases where signals of interest are strong and wideband. 
 
-\subsection{Analog Filter Bank}\label{analog-filter-bank}
+\subsection{Analog filterbank}\label{analog-filter-bank}
 
-An \emph{analog filter bank} is just what its name implies: a bank (or collection) of analog filters. The analog filters are designed to pass through different ranges of frequencies. The power of the analog filters' output is measured and recorded. By creating a bank of filters with adjacent and non-overlapping passband frequencies one can get a complete picture of the input signal's spectrum.
+An \emph{analog filterbank} is just what its name implies: a bank (or collection) of analog filters. The analog filters are designed to pass through different ranges of frequencies. The power of the analog filters' output is measured and recorded. By creating a bank of filters with adjacent and non-overlapping passband frequencies one can get a complete picture of the input signal's spectrum.
 
-\subsection{Analog autocorrelators}\label{autocorrelators}
-The power spectrum of a signal, $S(f)$,  is related to the signal's autocorrelation function, $R(\tau)$, over a range of time lags, $\tau$, by Fourier transform:
-\begin{equation}
-\label{spec-from-autocorr}
- S(f) = \int_{-\infty}^{\infty} R(\tau)e^{-2\pi i \tau f} \,\mathrm{d}\tau \,.
-\end{equation}
+Analog filterbanks can offer very wide bandwidths, but design of very narrowband filters is challenging. Additionally, the input signal must be split multiple times, and each time the signal is split, its power is halved. Unlike digital systems, the shape and gain of each filter may differ. For these reasons, analog filterbanks are uncommon in modern radio astronomy.
 
-Thus, if one can build a device to measure the autocorrelation function of a signal of interest, it is straightforward to obtain the signal's power spectrum.
-When integrated over a time $T$, the autocorrelation of a signal specified by the time-varying voltage $v(t)$ is defined by 
+\subsection{Analog autocorrelator spectrometers}\label{sub:analog-acs}
+%The power spectrum of a signal, $S(f)$,  is related to the signal's autocorrelation function, $R(\tau)$, over a range of time lags, $\tau$, by Fourier transform:
+%\begin{equation}
+%\label{spec-from-autocorr}
+% S(f) = \int_{-\infty}^{\infty} R(\tau)e^{-2\pi i \tau f} \,\mathrm{d}\tau \,.
+%\end{equation}
 
-\begin{equation}
-\label{autocorr}
- R(\tau) = \frac{1}{2T} \int_{-T}^{T} v(t)v(t+\tau) \,\mathrm{d}t \,.
-\end{equation}
+%Thus, if one can build a device to measure the autocorrelation function of a signal of interest, it is straightforward to obtain the signal's power spectrum.
+%When integrated over a time $T$, the autocorrelation of a signal specified by the time-varying voltage $v(t)$ is defined by 
 
-Since $v(t)$ is a real-valued function $R(\tau)$ is necessarily symmetric about positive and negative lags, so only one half need be measured. Furthermore, the symmetry of $R(\tau)$ means that the only contributions to $S(f)$ are from the even parts of the complex exponential in Equation \ref{spec-from-autocorr}. The computation of the power spectrum can then be reduced to:
+%\begin{equation}
+%\label{autocorr}
+% R(\tau) = \frac{1}{2T} \int_{-T}^{T} v(t)v(t+\tau) \,\mathrm{d}t \,.
+%\end{equation}
 
-\begin{equation}
-\label{spec-from-autocorr-reduced}
- S(f) = 2\int_{0}^{\infty} R(\tau)\cos{(2\pi \tau f)} \,\mathrm{d}\tau \,.
-\end{equation}
+%Since $v(t)$ is a real-valued function $R(\tau)$ is necessarily symmetric about positive and negative lags, so only one half need be measured. Furthermore, the symmetry of $R(\tau)$ means that the only contributions to $S(f)$ are from the even parts of the complex exponential in Equation \ref{spec-from-autocorr}. The computation of the power spectrum can then be reduced to:
 
-Regardless of autocorrelator implementation, it is invariably the case that Equation \ref{spec-from-autocorr-reduced} is computed for only a discrete range of delays, $\tau$. In much the same way as the sampling rate of an analog signal determines how much bandwidth can be processed unambiguously (see Section \ref{analog-to-digital-converters}) the spacing of lags in an autocorrelator determines how much bandwidth it can process without aliasing occuring. In the case of an autocorrelator the Nyquist criterion is satisfied when there are two taps per wave period at the highest frequency (shortest wavelength) signal of interest. 
-
-
-\subsubsection{Analog Autocorrelators}\label{analog-autocorrelators}
-
-Analog correlators are those that measure the autocorrelation function (Equation \ref{autocorr}) using analog circuitry to implement multipliers and propagation times through carefully constructed delay lines to implement the desired tap delays.
-A typical schematic of an analog autocorrelator is shown in Figure \ref{fig:analog-autocorr}. Here, outputs of each correlator tap are digitized after a small amount of time-averaging. Further averaging can take place digitally before computation of the power spectrum via cosine transform. Details of specific scientific deployments of analog autocorrelation spectrometers can be found in \cite{Erickson2007} and \cite{Harris1998}.
-
-The main advantage of the analog autocorrelator over its digital counterpart (see Section \ref{digital-autocorrelators}) is that digitization need only take place at a rate commensurate with the averaging period of the correlator, rather than the bandwidth of the input signals. For this reason, analog autocorrelation spectrometers are usually seen in systems that have instantaneous bandwidths of many gigahertz which cannot be readily digitized by commercially available ADCs.
+%\begin{equation}
+%\label{spec-from-autocorr-reduced}
+% S(f) = 2\int_{0}^{\infty} R(\tau)\cos{(2\pi \tau f)} \,\mathrm{d}\tau \,.
+%\end{equation}
 
 
-\begin{figure}
- \centering
- \includegraphics[width=\textwidth]{./figures/analog-autocorr-crop.pdf}
- % analog-autocorr-crop.pdf: 0x0 pixel, 0dpi, nanxnan cm, bb=
- \label{fig:analog-autocorr}
- \caption{An example implementation of an analog autocorrelator. The input signal is circulated in opposite directions down a pair of delay lines. The signal is tapped on each delay line at points separated by propagation delays of $\frac{\Delta t}{2}$. Each tap computes an element of the correlation with lag $\tau=n\Delta t$.}
-\end{figure}
+An analog ACS uses analog circuitry to implement multipliers and propagation times through carefully constructed delay lines to implement the desired tap delays. 
+%A typical schematic of an analog ACS is shown in Fig.~\ref{fig:analog-autocorr}. Here, outputs of each correlator tap are digitized after a small amount of time-averaging. Further averaging can take place digitally before computation of the power spectrum via cosine transform. 
+Details of specific scientific deployments of analog autocorrelation spectrometers can be found in \cite{Erickson2007} and \cite{Harris1998}.
 
-Figure \ref{fig:analog-autocorr} also indicates circuitry for modulating the input and outputs of the correlator. Such switching can serve multiple purposes. Firstly, it is sometimes advantageous for cost or performance reasons to prefer square-law diode detectors in favour of multiplication circuitry. These have a respose to inputs $v_1$ and $v_2$ of
-\begin{equation}
- v_1^2 + v_2^2 + 2v_1v_2 \, .
-\end{equation}
-
-The last term is equal to the output of a multiplier, while the first two terms represent unwanted parts of the diode response. These unwanted terms can be eliminated by periodically alternating the sign of one of the inputs $v_1$ or $v_2$. This has no effect on the unwanted terms, but causes the last term to alternate sign. If, prior to time averaging, the sign of the diode output is flipped synchronously with the input then the unwanted terms will, up to a noise contribution, be removed.
-
-In general, the principal of modulating the desired part of a signal and then synchronously demodulating to cancel out unwanted contributions can be used to surpress a variety of unwanted effects in radio receivers, such as gain variation and cross-coupling. An operating telescope may have multiple such switching systems operating concurrantly at different frequencies targetting different effects. See, for example, \cite{Erickson2007}. 
-
-\subsection{Acousto-Optic}\label{acousto-optic}
-
-\subsection{Hybrid Analog-Digital}\label{hybrid-analog-digital}
+The main advantage of the analog autocorrelator over its digital counterpart (Sec.~\ref{sub:acs}) is that digitization need only take place at a rate commensurate with the averaging period of the correlator, rather than the bandwidth of the input signals. For this reason, analog autocorrelation spectrometers are usually seen in systems that have instantaneous bandwidths of many gigahertz which cannot be readily digitized by commercially available ADCs. In contrast, the number of physical components required scales with the number of channels, making analog ACS systems with many channels --- readily implemented by digital systems ---  infeasible.
 
 
+%\begin{figure}
+% \centering
+% \includegraphics[width=\textwidth]{./figures/analog-autocorr-crop.pdf}
+% % analog-autocorr-crop.pdf: 0x0 pixel, 0dpi, nanxnan cm, bb=
+% \label{fig:analog-autocorr}
+% \caption{An example implementation of an analog ACS. The input signal is circulated in opposite directions down a pair of delay lines. The signal is tapped on each delay line at points separated by propagation delays of $\frac{\Delta t}{2}$. Each tap computes an element of the correlation with lag $\tau=n\Delta t$.}
+%\end{figure}
+
+%Figure \ref{fig:analog-autocorr} also indicates circuitry for modulating the input and outputs of the correlator. Such switching can serve multiple purposes. Firstly, it is sometimes advantageous for cost or performance reasons to prefer square-law diode detectors in favour of multiplication circuitry. These have a respose to inputs $v_1$ and $v_2$ of
+%\begin{equation}
+% v_1^2 + v_2^2 + 2v_1v_2 \, .
+%\end{equation}
+
+%The last term is equal to the output of a multiplier, while the first two terms represent unwanted parts of the diode response. These unwanted terms can be eliminated by periodically alternating the sign of one of the inputs $v_1$ or $v_2$. This has no effect on the unwanted terms, but causes the last term to alternate sign. If, prior to time averaging, the sign of the diode output is flipped synchronously with the input then the unwanted terms will, up to a noise contribution, be removed.
+
+%In general, the principal of modulating the desired part of a signal and then synchronously demodulating to cancel out unwanted contributions can be used to surpress a variety of unwanted effects in radio receivers, such as gain variation and cross-coupling. An operating telescope may have multiple such switching systems operating concurrantly at different frequencies targetting different effects. See, for example, \cite{Erickson2007}. 
+
+%\subsection{Acousto-Optic}\label{acousto-optic}
+
+%\subsection{Hybrid Analog-Digital}\label{hybrid-analog-digital}
 
 
+\section{Design considerations and examples}
 
+\subsection{Calibration requirements}
+Dicke switching and calibration.
 
-\section{Examples}
+Jansky and Temperature 
+\subsection{Time and frequency standards}
+\subsection{Telescope metadata}
+\subsection{File formats}
 
 
 \subsection{Current technology}

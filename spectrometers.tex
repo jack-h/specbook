@@ -29,7 +29,7 @@ Address goes here, \\
 dancpr@berkeley.edu}
 
 \begin{abstract}
-This review gives an introduction to spectrometers and discusses their use within radio astronomy. While a variety of technologies are introduced, particular emphasis is given to digital systems, with details of current-generation implementations given as examples. Three different types of digital spectrometers are discussed: autocorrelation spectrometers (ACS), Fourier transform spectrometers (FTF, Sec.~\ref{sub:ftf}), and polyphase filterbank spectrometers (PFB).  Given their growing ubiquity, polyphase filterbanks are detailed at length. The relative advantages and disadvantages of spectrometer technology are compared and contrasted, and implementation considerations are presented.
+This review gives an introduction to spectrometers and discusses their use within radio astronomy. While a variety of technologies are introduced, particular emphasis is given to digital systems, with details of current-generation implementations given as examples. Three different types of digital spectrometers are discussed: autocorrelation spectrometers, Fourier transform spectrometers, and polyphase filterbank spectrometers.  Given their growing ubiquity and significant advantages, polyphase filterbanks are detailed at length. The relative advantages and disadvantages of different spectrometer technologies are compared and contrasted, and implementation considerations are presented.
 
 \end{abstract}
 
@@ -71,7 +71,7 @@ S_{xx}(k)=\left\langle \left|X(k)\right|^{2}\right\rangle ,\label{eq:discrete-po
 \end{equation}
 where $X(k)$ denotes the Discrete Fourier Transform (DFT) of $x(t)$:
 \begin{equation}
-X(k)=\sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N}
+X(k)=\sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N}\label{eq:dft1}
 \end{equation}
 
 There are therefore two distinct classes of spectrometers: ones that approximate $S_{xx}(k)$ by firstly forming the autocorrelation, then taking a Fourier transform ala Eq.~\ref{eq:discrete-wiener}, and those that first convert into the frequency domain to form $X(k)$ before evaulating Eq.~\ref{eq:discrete-pow}. We will refer to these as autocorrelation spectrometers (ACS, Sec.~\ref{sub:acs}), and Fourier transform filterbanks (FTF, Sec.~\ref{sub:ftf}), respectively. Polyphase filterbank spectrometers (PFB, Sec.~\ref{sub:pfb}) can be thought of as an  FTF with enhanced filter response.
@@ -144,9 +144,9 @@ Ideally, each channel would have unitary response over $\nu_c \pm \frac{\Delta\n
 
 A related concern is that the channel's non-ideal shape will cause narrowband signals at channel edges to be attenuated, an effect known as scalloping loss (Fig.~\ref{fig:scalloping}). Spectrometers are often designed such that neighboring channels overlap at their full-width at half-maximum points (FWHM), in which case the signal will be spread evenly over both channels. Wideband signals are not affected by scalloping. 
 
-Two other important factors are 1) the minimum and maximum integration times, $t_{\rm{min}}$ and $t_{\rm{max}}$, over which a spectrometer may operate, and 2) the dynamic range (DR), the span of powers over which a spectrometer can operate nominally. These factors are generally enforced by hardware limitations. Detection of transient phenomena, such as fast radio bursts (FRBs [REF]) and pulsars, require $t_{\rm{min}}$ to be as short as a nanosecond. The presence of RFI is often the main driver for  dynamic range; see Sec.~\ref{sub:dynamic-range}.
+Two other important factors are 1) the minimum and maximum integration times, $t_{\rm{min}}$ and $t_{\rm{max}}$, over which a spectrometer may operate, and 2) the dynamic range (DR), the span of powers over which a spectrometer can operate nominally. These factors are generally enforced by hardware limitations. Detection of transient phenomena, such as fast radio bursts (FRBs [REF]) and pulsars, require $t_{\rm{min}}$ to be as short as a nanosecond; integration lengths of several seconds are common when observing faint sources. The presence of RFI is often the main driver for dynamic range; see Sec.~\ref{sub:dynamic-range}.
 
-For implementation on current technology, PFB spectrometers offer the least scalloping loss and spectral leakage, so are in most instances preferable to FTF and ACS implementations. A comparison of architectures is given in \ref{sub:comparison}.
+PFB spectrometers offer less scalloping loss and spectral leakage than both ACS and FTF implementations. Nevertheless, ACS and FTF systems are still encountered within radio astronomy. Further comparison of architectures is given in Sec.~\ref{sub:comparison}.
 
 \begin{figure}
  \centering
@@ -157,21 +157,36 @@ For implementation on current technology, PFB spectrometers offer the least scal
 
 \section{Digital systems}
 
-Digital signal processing (DSP) techniques are well-suited to applications such as filtering and forming filterbanks; as such, a majority of current-day spectrometers are based on digital technology. This section gives a short overview of DSP techniques; I refer the reader unfamiliar with digital signal processing to the excellent \citet{bookLyonsDSP} and \citet{BookSmithDSP}. 
+Digital signal processing (DSP) techniques are well-suited to applications such as filtering and forming filterbanks; as such, a majority of current-day spectrometers are based on digital technology. A basic understanding of DSP is required to fully understand digital spectrometers; there are several excellent DSP texts available \citet{bookLyonsDSP, BookSmithDSP}. 
 
-In the diagrams and equations that follow, the symbol $\otimes$ denotes multiplication of time samples, and $\oplus$ denotes addition. The symbol $z^{-n}$ is used to denote a time delay of \emph{n} units, and the symbol $\downarrow D$ is used for downsampling by a factor \emph{D} and $\uparrow U$ for upsampling by a factor \emph{U}.
-
+In the diagrams and equations that follow, the symbol $\otimes$ denotes multiplication of time samples, and $\oplus$ denotes addition. The symbol $z^{-n}$ is used to denote a time delay of \emph{n} units, due to the relationship between time delay in a digital stream and the z-transform. The symbol $\downarrow D$ is used for downsampling by a factor \emph{D} and $\uparrow U$ for upsampling by a factor \emph{U}.
 
 \subsection{Digital sampling}
 
-Digital sampling, or \emph{digitization}, is the process of converting an analog signal to a digital one. As their name implies, analog to digital converters (ADCs) do this conversion. The two main characteristics of an ADC are its sample rate, $\nu_{\rm{s}}$, and the number of bits per sample, $N_{\rm{b}}$.
+Digital sampling, or digitization, is the process of converting an analog signal to a digital one. As their name implies, analog to digital converters (ADCs) do this conversion. The two main characteristics of an ADC are its sample rate, $\nu_{\rm{s}}$, and the number of bits per sample, $N_{\rm{bits}}$.
 
-The ADC converts an analog voltage waveform into a series of numeric quantities called \emph{samples}. The sample rate determines the amount of bandwidth that can be unambiguously processed by an ADC. The Nyquist Theorem --- one of the most fundamental theorems within signal processing --- states that a band-limited signal may be fully recovered when it is sampled at a rate that is twice the bandwidth, $\nu_{\rm{s}} = 2 B$. 
+\subsubsection{Nyquist sampling \label{sub:sampling}}
+
+The ADC converts an analog voltage waveform into a series of numeric quantities called samples. The sample rate determines the amount of bandwidth that can be unambiguously processed by an ADC. The Nyquist Theorem --- one of the most fundamental theorems within signal processing --- states that a band-limited signal may be fully recovered when it is sampled at a rate that is twice the bandwidth, $\nu_{\rm{s}} = 2 B$. 
 % the Nyquist rate is therefore dependent upon a given signal's bandwidth. 
 %For example, a sample rate of 2 billion samples per second allows a band-limited signal with a bandwidth of 1~GHz to be digitized. 
-Sampling at the  Nyquist rate is referred to as \emph{critical sampling}, under the Nyquist rate as \emph{undersampling}, and sampling over the Nyquist rate as \emph{oversampling}.
+Sampling at the  Nyquist rate is referred to as \emph{critical sampling}, under the Nyquist rate as \emph{undersampling}, and sampling over the Nyquist rate as \emph{oversampling}. Sample rates may be increased by a process known as \emph{upsampling} and decreased by \emph{downsampling}, by using sample rate conversion filters.
 
 Undersampling a signal causes an effect known as \emph{aliasing} to occur, whereby different parts of a signal are indistinguishable from each other, resulting in information loss. Note that oversampling a signal does not increase the information content, but under certain circumstances is advantageous for reducing noise and/or distortion.
+
+Compressed sampling [REF] is a recently discovered technique in which signals that exhibit sparsity can be reconstructed using fewer samples than the Nyquist rate. To date, compressive sampling has not been employed in radio astronomy spectrometers.
+
+\subsubsection{Quadrature sampling}
+
+\emph{Quadrature sampling}\cite{Lyons:2000uy} is the process of digitizing a band-limited signal and translating it to be centered about 0~Hz. A quadrature-sampled signal is complex valued, in contrast to real-valued Nyquist sampling. A quadrature-sampled signal has $\nu_{s} = B$; that is, each complex-valued sample is equivalent to two real-valued samples. Quadrature-sampled signals may have negative frequency components (i.e. below 0~Hz).
+
+A Nyquist-sampled signal $x(t)$ centered at $\nu_0$ can be converted into a quadrature-sampled signal $x'(t)$ by multiplication with a complex phasor $e^{-2\pi i \nu_0 t}$:
+\begin{equation}
+	x'(t) = x(t) e^{-2 \pi i \nu_0 t},
+\end{equation}
+which is known as quadrature mixing.
+
+The similarity between the phasor $e^{-2\pi i \nu_0 t}$ and that encountered in a DFT is noteworthy: each channel of a DFT can be seen quadrature mixing the input signal, applying a filter of width $B$, and then downsampling the signal to a rate $\nu_s=B$.
 
 \subsubsection{Quantization efficiency \label{sub:quant}}
 
@@ -204,15 +219,16 @@ The theoretical maximum dynamic range of an ADC in decibels is given by
 \end{equation}
 in practice, as ADCs are imperfect analog devices, their effective number of bits (ENOB) is below this. For example, an 8-bit ADC may have an ENOB of 7.5, resulting in a dynamic range of 45~dB.
 
-%\subsubsection{ADC Characteristics}
 
-%[JACK TO WRITE OR DELETION]
-
-%\subsubsection{Interleaving}
-
-%[JACK TO WRITE OR DELETION]
 
 \subsection{Windowing functions}
+
+\begin{figure}[t]
+ \centering
+ \includegraphics[width=\textwidth]{./figures/fft_resp}
+ 
+ \caption{Amplitude response of the DFT, compared to amplitude response of a Hann-windowed DFT. \label{fig:fft_resp}}
+\end{figure}
 
 The DFT is computed over a finite number of samples, $N$, also known as the \emph{window length}. As the window length is not infinite, the response of the DFT is not perfect, resulting in spectral leakage (Fig.~\ref{fig:leakage}). This can be understood if we consider that the DFT
 \begin{eqnarray}
@@ -230,6 +246,12 @@ where $\mathcal{F}$ denotes the Fourier transform, and $\Pi(n)$ the rectangle (o
 \end{equation}
 which is Fourier paired with the sinc() function\footnote{This is the same relationship as that between light passing through a single slit aperture and its far-field diffraction pattern}. In other words, we can consider the finite length of the DFT as effectively convolving the perfect Fourier transform response $X'(k)$ with a sinc function. The undesirable peaks of the sinc function are referred to as \emph{sidelobes}.
 
+\begin{figure}[t]
+ \centering
+ \includegraphics[width=\textwidth]{./figures/window_fns}
+ \caption{Four common windowing functions ($w(n)$, top) and their corresponding squared Fourier transforms ($|W(k)|^2$, bottom). Outside of the range [0, $N-1$], the function $w(n)=0$ for all windows. \label{fig:window_fns}}
+\end{figure}
+
 Windowing functions\citet{SvenGade1987} improve the response of a DFT, by somewhat mitigating sidelobe response, at the expense of increasing the channel width. They are applied by multiplying the signal $x(n)$ by a weighting function, $w(n)$:
 \begin{eqnarray}
 X_w(k) & = & \sum_{n=0}^{N-1}w(n)x(n)e^{-2\pi ink/N} \\
@@ -238,19 +260,6 @@ X_w(k) & = & \sum_{n=0}^{N-1}w(n)x(n)e^{-2\pi ink/N} \\
 The take-home message of all this is that DFT channels have a non-zero response outside their passband (Fig.~\ref{fig:fft_resp}), and that applying a windowing function can improve their response. 
 
 Windowing functions are also important in the design of digital filters (Sec.~\ref{sec:filters}). Some common windowing functions and their frequency-domain magnitude responses are shown in Fig.~\ref{fig:window_fns}; their functional forms are given in Tab.~\ref{tab:window_fns}. The most appropriate windowing function is dependent upon application; for digital spectrometers, the Hamming and Hann windows are commonly applied.
-
-\begin{figure}[t]
- \centering
- \includegraphics[width=\textwidth]{./figures/fft_resp}
- 
- \caption{Amplitude response of the DFT, compared to amplitude response of a Hann-windowed DFT. \label{fig:fft_resp}}
-\end{figure}
-
-\begin{figure}[t]
- \centering
- \includegraphics[width=\textwidth]{./figures/window_fns}
- \caption{Four common windowing functions ($w(n)$, top) and their corresponding squared Fourier transforms ($|W(k)|^2$, bottom). Outside of the range [0, $N-1$], the function $w(n)=0$ for all windows. \label{fig:window_fns}}
-\end{figure}
 
 A more dramatic improvement may be achieved by using an lowpass filter frontend before the DFT \citep{Bellanger:1976p7898}, to form what is known as a polyphase filterbank. This approach is detailed further Sec.~\ref{sub:pfb}. 
 
@@ -285,37 +294,24 @@ A more dramatic improvement may be achieved by using an lowpass filter frontend 
 
 \end{table}
 
-\subsection{Digital mixing and quadrature sampling}
 
-A common DSP task is to take a band-limited signal centered at a frequency $\nu_c$ and `mix' it down to baseband [EQN HERE]. Very brief intro to IF mixing, just required $e^{i w t}$ to be introduced for lowpass $->$ bandpass. [JACK MAYBE?]
-
-Also need to introduce the term *quadrature* for complex sampling, state that Nyquist rate is not broken.
-
-\subsection{Sample rate conversion}
-
-Upsampling and downsampling.
-
-\subsection{The z-transform}
-
-This is something I don't understand properly myself. Jack to explain why z-transform = delay?
 
 \subsection{Finite impulse response filters}\label{sec:filters}
-
-\begin{figure}
- \centering
- \includegraphics[width=0.8\textwidth]{./figures/fir_filter}
- \label{fig:fir}
- \caption{N-tap FIR filter block diagram. An FIR filter applies a weighted sum to the input sequence $x(t)$, outputting the filtered signal $y(t)$.}
-\end{figure}
-
 
 A finite impulse response (FIR) filter is the windowed moving average of an input sequence $x(t)$. An FIR filter computes the sum 
 \begin{equation} 
 y(t)=\sum_{k=0}^{K-1}h(k)x(t-k),\label{eq:FIR-filter}
 \end{equation}
-where $y(n)$ is the output sequence, and $h(k)$ is a set of $K$ coefficients used for weighting. The upper summation bound, \emph{K}, is called the number of taps.\emph{ }A streaming implementation of an FIR filter is shown in Figure~\ref{fig:N-tap-FIR-filter}.
+where $y(n)$ is the output sequence, and $h(k)$ is a set of $K$ coefficients used for weighting. The upper summation bound, \emph{K}, is called the number of taps.\emph{ }A streaming implementation of an FIR filter is shown in Figure~\ref{fig:fir}.
 
-If we downsample after an FIR by $\downarrow D$, we only keep the outputs $t=mD$, $m\in\mathbb{Z}^{+}$. A $\downarrow D$ downsampled filter will alias spectra centred at any multiple of the output sample rate to baseband. In such cases it is more efficient to only compute the terms we wish to keep: 
+\begin{figure}
+ \centering
+ \includegraphics[width=0.8\textwidth]{./figures/fir_filter}
+ 
+ \caption{N-tap FIR filter block diagram. An FIR filter applies a weighted sum to the input sequence $x(t)$, outputting the filtered signal $y(t)$. \label{fig:fir}}
+\end{figure}
+
+If we apply downsampling by $\downarrow D$ to an FIR filtered signal, we only keep the outputs $t=mD$, $m\in\mathbb{Z}^{+}$. A $\downarrow D$ downsampled filter will alias spectra centered at any multiple of the output sample rate to baseband. In such cases it is more efficient to only compute the terms we wish to keep: 
 \begin{equation}
 y(mD)=\sum_{k=0}^{K-1}h(k)x(mD-k).\label{eq:FIR-filter-decimated}
 \end{equation}
@@ -325,13 +321,6 @@ One way we can accomplish this is to use a polyphase decimating filter, which is
 
 \subsection{Polyphase FIR filters}
 
-\begin{figure}
- \centering
- \includegraphics[width=\textwidth]{./figures/pfb_taps}
- \label{fig:pfb_taps}
- \caption{Example illustrating the polyphase decomposition of the coefficients h(k) of a 64-tap FIR filter (left) into 8 sub-filters (right). Each sub-filter has 8 taps; that is, P=8 and M=8. These sub-filters may be re-combined in a suitable polyphase filter structure to form a filter with an impulse response equal to the original FIR filter (left).}
-\end{figure}
-
 A common technique in DSP is to decompose an input sequence $x(t)$ into a set
 \begin{equation}
 \mathbb{P}=\begin{Bmatrix}x_{k}(t) & k\in(0,P-1)\end{Bmatrix}
@@ -340,13 +329,19 @@ of $P$ sub-sequences, $x_{k}(t)$, each of which is given by
 \begin{equation}
 x_{k}(t)=(\downarrow P)(z^{-k})x(t).
 \end{equation}
-This is known as polyphase decomposition. Even and odd decomposition
-of the signal $x(t)$ is achieved when $P=\mbox{2}$:
+This is known as polyphase decomposition. As a simple example, even and odd decomposition of the signal $x(t)$ is achieved when $P=\mbox{2}$:
 \begin{eqnarray}
 x_{0}(t) & = & \left\{ x(0),x(2),x(4),...\right\} \\
 x_{1}(t) & = & \left\{ x(1),x(3),x(5),...\right\} .
 \end{eqnarray}
 More generally, an input stream may be decomposed into $P$ different `phases'.
+
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth]{./figures/pfb_taps}
+ \label{fig:pfb_taps}
+ \caption{Example illustrating the polyphase decomposition of the coefficients h(k) of a 64-tap FIR filter (left) into 8 sub-filters (right). Each sub-filter has 8 taps; that is, P=8 and M=8. These sub-filters may be re-combined in a suitable polyphase filter structure to form a filter with an impulse response equal to the original FIR filter (left).}
+\end{figure}
 
 Polyphase filter structures are often more efficient than standard finite impulse response filters when used in sample rate conversion. A $\downarrow P$ decimating FIR filter of length $K=MP$ can be constructed from $P$ discrete FIR filter `branches', each acting upon a different phase; that is
 \begin{equation}
@@ -366,86 +361,74 @@ Decimating polyphase filter structures are more efficient than standard FIR filt
 
 A comprehensive overview of polyphase filters is given by Vaidyanathan\citet{Vaidyanathan:1990p6127}, and in Chapter~2 of Harris\citet{BookHarrisMultirateDSP}; I will give a brief introduction here. 
 
-\subsection{The Fast Fourier Transform}
+\subsection{The Fast Fourier Transform\label{sub:fft}}
 
-* Radix 2 stuff
+The Fast Fourier Transform\cite{Cooley1965} (FFT) is a highly efficient algorithm for computing the DFT of a signal with regularly-spaced samples\footnote{Nyquist and quadrature sampled signals have regularly spaced samples.}. To directly compute the DFT
+\begin{equation}
+X(k)=\sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N}\label{eq:dft1}
+\end{equation}
+would require of order $O(N^2)$ operations, but the FFT algorithm reduces this to only $O(N \rm{log_2}$$N)$ operations. FFT implementations often exhibit best performance when $N$ is a power of 2. 
 
 \section{Digital spectrometers}
 
 The first digital spectrometer used for radio astronomy was developed by Weinreb\citet{Weinreb:1963p10042} in 1963. This 1-bit ACS was used to observe the 18-cm wavelength hydroxyl (OH) absorption line in the spectrum of Cassiopeia A, providing the first evidence of OH in the interstellar medium \citep{Weinreb:1963p9992}. The first reference to FTF spectrometers for radio astronomy can be found in \citet{Chikada:1987p10044}; however FTF spectrometers did not enjoy widespread adoption until much later. This is due to implementation issues, such as increased data output rates as compared to ACS implementations; see \citet{Bunton2000}, for a discussion of these issues.
 
-The first class are called lag-autocorrelators, or auto-correlation spectrometers (ACS). The second class are known as Fourier transform filterbanks (FTF).
-
-There are two distinct classes of digital spectrometers: ones that approximate $S_{xx}(k)$ through numerical approximation to Equation~\ref{eq:discrete-wiener}, and those that evaulate Equation~\ref{eq:discrete-pow}. The first class are called lag-autocorrelators, or auto-correlation spectrometers (ACS). The second class are known as a discrete Fourier transform filterbanks (FTF).  
-
 
 
 \subsection{Autocorrelation spectrometers}\label{sub:acs}
 
-Regardless of autocorrelator implementation, it is invariably the case that Equation \ref{spec-from-autocorr-reduced} is computed for only a discrete range of delays, $\tau$. In much the same way as the sampling rate of an analog signal determines how much bandwidth can be processed unambiguously (see Section \ref{analog-to-digital-converters}) the spacing of lags in an autocorrelator determines how much bandwidth it can process without aliasing occuring. In the case of an autocorrelator the Nyquist criterion is satisfied when there are two taps per wave period at the highest frequency (shortest wavelength) signal of interest. 
+Regardless of ACS implementation, the PSD (Eq.~\ref{eq:psd}) is computed for only a discrete range of delays, $\tau$. The spacing of lags in an ACS determines how much bandwidth it can process without aliasing occurring. The Nyquist criterion is satisfied when there are two taps per wave period at the highest frequency (shortest wavelength) signal of interest. 
 
 
-Digital autocorrelators implement the autocorrelators delay-and-multiply circuitry using digital delays -- shift registers -- and digital multiplier cores to compute signal products. As a result, digital correlators can have much more predictable performance than their analog counterparts whose processing is subject to small errors in delay line lengths and other subtle analog effects. In contrast, provided signals in a digital autocorrelator can be digitised with adequate signal-to-noise and linearity the downstream autocorrelation computation can be regarded as possesing perfect precision.
-
-Digital systems are usually prefered when the bandwidth to be processed is within the capabilities of commercially available ADC chips. However, if the number of frequency channels desired is large an FFT-based spectrometer may be preferable to an autocorrelation system. FFT spectrometers are described more fully in Section \ref{digital-fft} and can be inplemented with vastly lower computational overhead, at the cost of increased design complexity.
-
+Digital autocorrelators implement the autocorrelators delay-and-multiply circuitry using digital delays -- shift registers -- and digital multiplier cores to compute signal products. As a result, digital correlators can have much more predictable performance than their analog counterparts whose processing is subject to small errors in delay line lengths and other subtle analog effects. 
 
 
 \subsection{Fourier transform spectrometers}\label{sub:ftf}
 
-A time-domain signal $v(t)$ may be spectrally decomposed using a Fourier Transform, defined by:
+FTF spectrometers compute the PSD of a signal by applying a DFT of length $N$ to an input signal, squaring the DFT output, then taking an average over time. 
 
-\begin{equation}
- \label{ft}
- V(f) = \int_{-\infty}^{\infty} v(t) e^{-2\pi i f} \,\mathrm{d}t\, .
-\end{equation}
+%It is important to note that the DFT is computed over windows of length $N$ on the signal $x(t)$, which is essentially infinite in length. 
+For a signal with sampling rate $\nu_s=2B$, each DFT channel has a bandwidth $B/N$, and a quadrature-sampled output rate of $\nu_s/2N = B/N$. As mentioned in Sec.~\ref{sub:sampling}, the DFT (Eq.~\ref{eq:dft1}) may be thought of as the mixing of the input signal with a bank of oscillators, followed by an averaging with a square window function. In effect, this is a simple filterbank. Thinking of the DFT as a filterbank, instead of as a transformation of a time-domain signal into a frequency-domain signal, gives an alternative insight into how a spectrometer works.
 
-In a digital system, where an input has been discretely sampled $N$ times with values $v_n$ the Fourier Transform may be reduced to its discrete form: 
+For real-sampled data the negative frequencies contain no extra information, so they need not be computed. This leaves a a bank of $N/\mbox{2}$ filters, evenly spaced over a bandwidth $\nu_{s}/\mbox{2}$. 
 
-\begin{equation}
- \label{dft}
- V_f = \sum_{n = 0}^{N-1} v_n e^{\frac{-2\pi i f n}{N}} \hspace{1cm} f = [0, N-1]\,.
-\end{equation}
+In general, computing Eq.~\ref{eq:dft1} for each value of $\nu_0$ requires $N$ multiplications, and $N$ additions. Since $\nu_0$ can take $N$ independent values itself, the total cost of implementing a DFT filterbank is $N^2$ operations per transform. If one transform is computed for every $N$ samples digitized, then the computation rate is of order $\nu_sN$ operations each second. 
 
-Equation \ref{dft} may be thought of as the mixing of the input signal with a bank of oscillators, followed by an averaging with a square window function. In effect, this is a simple filterbank.
-
-In general, computing Equation \ref{dft} for each value of $f$ requires $N$ multiplications, and $N$ additions. Since $f$ can take $N$ independent values itself, the total cost of implementing a DFT filterbank is $N^2$ operations per transform. If one transform is computed for every $N$ samples digitized, then the computation rate is of order $F_sN$ operations each second, where $F_s$ is the sampling rate.
-
-In the case that samples $v_n$ are regularly spaced in time (which they almost invariably are) the Fast Fourier Transform (FFT, \cite{Cooley1965}) algorithm allows Equation \ref{dft} to be evaluated in $O(N\log_2(N))$ operations, or $F_s\log_2(N)$ if performed every $N$ samples. With computational savings of order $N / \log2{N}$ the FFT is an extraordinarily powerful algorithm, which is used heavily throughout radio astronomy. For a spectrometer of $~10^4$ channels, the FFT algorithm requires approximately $0.1\%$ as many operations as an autocorrelation spectrometer.
+The FFT (Sec.~\ref{sub:fft}) allows Eq.~\ref{eq:dft1} to be evaluated in $O(N\log_2N)$ operations, or $\nu_s\log_2N$ when performed every $N$ samples. With computational savings of order $N / \log2{N}$ the FFT is an extraordinarily powerful algorithm, which is used heavily throughout radio astronomy. For a spectrometer of $~10^4$ channels, the FFT algorithm requires approximately $0.1\%$ as many operations as an autocorrelation spectrometer.
 
 
 \subsection{Polyphase filterbanks}\label{sub:pfb}
 
-In comparison to both ACS and FTF architectures, polyphase filterbanks offer vastly improved interchannel isolation. For radio astronomy
-purposes, high interchannel isolation is important so that spectral features are not smeared out, and so the spectrometer is more resilient to the high levels of radio frequency interference (RFI) emitted from terrestrial sources. Polyphase filterbanks are therefore the best candidate for radio astronomy spectrometers, if computationally affordable.
+The polyphase filterbank (PFB) structure\citet{Bellanger:1976p7898, Harris2011} was first proposed by Bellanger in 1976. A PFB is a computationally efficient implementation of a filterbank, constructed from an FFT preceded by a prototype polyphase FIR filter frontend. PFB-based spectrometers offer vastly lowered spectral leakage over both ACS and FTF architectures. 
+%For radio astronomy purposes, high interchannel isolation is important so that spectral features are not smeared out, and so the spectrometer is more resilient to the high levels of radio frequency interference (RFI) emitted from terrestrial sources. Polyphase filterbanks are therefore the best candidate for radio astronomy spectrometers, if computationally affordable.
 
-A computationally efficient filterbank with high interchannel isolation can be constructed from an FFT preceded by a prototype polyphase FIR filter frontend. Such an implementation exploits the fact that a lowpass filter with coefficients $h(k)$, can be converted into a quadrature (complex) bandpass filter with central frequency $\omega_{k}$ by multiplying the coefficients by $e^{i\omega_{k}t}$ . That is, 
+The PFB exploits the fact that a lowpass filter with coefficients $h(k)$, can be converted into a quadrature bandpass filter with central frequency $\omega_{k}=2\pi\nu$ by multiplying the coefficients by $e^{i\omega_{k}t}$ . That is, 
 \begin{equation}
 h_{bpf}(k)=h(k)e^{i\omega_{k}t}.\label{eq:lowpass-to-bandpass}
 \end{equation}
-Now, suppose we have a decimating lowpass polyphase filter, such as that in Figure~\ref{fig:polyphase-filterb}. The output of each branch
-is 
+Now, suppose we have implemented a decimating lowpass polyphase filter. The output of each branch is 
 \begin{equation}
 y_{p}(t)=\sum_{m=0}^{M-1}h_{p}(m)x_{p}(t-m),
 \end{equation}
-where $h_{p}(m)$ are coefficients from our prototype lowpass filter. If we follow this by a DFT, as in Figure~\ref{fig:polyphase-filterd}, we then have 
+where $h_{p}(m)$ are coefficients from our prototype lowpass filter. If we follow this by a DFT, as in Fig.~\ref{fig:pfb_fir_fft}, we then have 
 \begin{eqnarray}
 Y(k) & = & \sum_{p=0}^{P-1}y_{p}(t)e^{-2\pi ikp/P}\\
  & = & \sum_{p=0}^{P-1}\sum_{m=0}^{M-1}h_{p}(m)e^{-2\pi ikp/P}x_{p}(t-m).
 \end{eqnarray}
 Comparing this form to Equation~\ref{eq:FIR-filter-decimated} and Equation~\ref{eq:lowpass-to-bandpass}, we recognise that the output
-of this structure --- Figure~\ref{fig:polyphase-filterd} --- is equivalent to a set of $\downarrow P$ downsampling polyphase filters:
+of this structure is equivalent to a set of $\downarrow P$ decimating polyphase filters:
 \begin{equation}
 \mathbb{F}=\begin{Bmatrix}h_{k}(m), & k\in(0,P-1)\end{Bmatrix}
 \end{equation}
-where the central frequency of each filter is shifted by an amount $\mbox{2}\pi ik/P$. For data sampled at the Nyquist rate $f_{s}$,
-this filterbank consists of $N$ filters spanning $-f_{s}/\mbox{2}$ to $f_{s}/\mbox{2}$, with each filter separated by $f_{s}/\mbox{2}N$.
-For real sampled data the negative frequencies contain no extra information, so they need not be computed. This leaves a a bank of $N/\mbox{2}$ filters, evenly spaced over a bandwidth $f_{s}/\mbox{2}$. This is the structure that I have implemented.
+where the central frequency of each filter is shifted by an amount $\mbox{2}\pi ik/P$. For data sampled at the Nyquist rate $\nu_{s}$,
+this filterbank consists of $N$ filters spanning $-\nu_{s}/\mbox{2}$ to $\nu_{s}/\mbox{2}$, with each filter separated by $\nu_{s}/\mbox{2}N$.
 
-This polyphase filterbank (PFB) structure was first proposed by \citet{Bellanger:1976p7898}, and has been previously used in radio astronomy applications, see for example \citet{Zimmerman:1991p6933} and \citet{Parsons:2006p257}. The rest of this chapter discusses the implementation of a 8192 channel polyphase filterbank for radio astronomy, on Field Programmable Gate Array based digital hardware.
-
-
-
+\begin{figure}
+ \centering
+ \includegraphics[width=\textwidth]{./figures/pfb_fir_fft}
+ \label{fig:pfb_fir_fft}
+ \caption{Polyphase filterbank streaming implementation.}
+\end{figure}
 
 \begin{figure}
  \centering
@@ -454,14 +437,8 @@ This polyphase filterbank (PFB) structure was first proposed by \citet{Bellanger
  \caption{}
 \end{figure}
 
-\begin{figure}
- \centering
- \includegraphics[width=\textwidth]{./figures/pfb_fir_fft}
- \label{fig:pfb_response}
- \caption{Polyphase filterbank streaming implementation.}
-\end{figure}
 
-\subsubsection{Overlapping filterbanks}
+%\subsubsection{Overlapping filterbanks}
 
 \subsection{Implementation comparison}\label{sub:comparison}
 
@@ -495,7 +472,7 @@ An advantage of swept spectrometers is that they can operate over large RF bandw
 
 \subsection{Analog filterbank}\label{analog-filter-bank}
 
-An \emph{analog filterbank} is just what its name implies: a bank (or collection) of analog filters. The analog filters are designed to pass through different ranges of frequencies. The power of the analog filters' output is measured and recorded. By creating a bank of filters with adjacent and non-overlapping passband frequencies one can get a complete picture of the input signal's spectrum.
+An analog filterbank is just what its name implies: a bank (or collection) of analog filters. The analog filters are designed to pass through different ranges of frequencies. The power of the analog filters' output is measured and recorded. By creating a bank of filters with adjacent and non-overlapping passband frequencies one can get a complete picture of the input signal's spectrum.
 
 Analog filterbanks can offer very wide bandwidths, but design of very narrowband filters is challenging. Additionally, the input signal must be split multiple times, and each time the signal is split, its power is halved. Unlike digital systems, the shape and gain of each filter may differ. For these reasons, analog filterbanks are uncommon in modern radio astronomy.
 
@@ -554,7 +531,7 @@ The main advantage of the analog autocorrelator over its digital counterpart (Se
 \section{Design considerations and examples}
 
 \subsection{Calibration requirements}
-Dicke switching and calibration.
+Dicke switching and calibration. Other data products: spectral kurtosis.
 
 Jansky and Temperature 
 \subsection{Time and frequency standards}

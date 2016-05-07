@@ -84,7 +84,7 @@ Analysis and synthesis filterbanks have many applications outside of astronomy, 
 
 \subsection{Polarimetry}
 
-Polarization\citet{BookTinbergenPolarim} is a key measurement within radio astronomy. Although most astrophysical radio emission is inherently unpolarized, a number of radio sources --- such as pulsars and masers --- do emit polarized radiation, and effects such as Faraday rotation by a galactic magnetic fields can yield polarized signals. A spectrometer that also measures polarization is known as a \emph{polarimeter} (or spectropolarimeter).
+Polarization is a key measurement within radio astronomy.\citet{BookTinbergenPolarim}  Although most astrophysical radio emission is inherently unpolarized, a number of radio sources --- such as pulsars and masers --- do emit polarized radiation, and effects such as Faraday rotation by a galactic magnetic fields can yield polarized signals. A spectrometer that also measures polarization is known as a \emph{polarimeter} (or spectropolarimeter).
 
 \subsubsection{Stokes parameters}
 
@@ -377,6 +377,7 @@ The first digital spectrometer used for radio astronomy was developed by Weinreb
 
 \subsection{Autocorrelation spectrometers}\label{sub:acs}
 
+ACS spectrometers 
 Regardless of ACS implementation, the PSD (Eq.~\ref{eq:psd}) is computed for only a discrete range of delays, $\tau$. The spacing of lags in an ACS determines how much bandwidth it can process without aliasing occurring. The Nyquist criterion is satisfied when there are two taps per wave period at the highest frequency (shortest wavelength) signal of interest. 
 
 
@@ -573,13 +574,13 @@ What's Available Commercially
 
 \section{Conclusions}
 
-Polyphase filterbanks have attractive characteristics for radio astronomy applications. They offer excellent interchannel isolation and can be implemented using efficient FFT based structures. Field Programmable Gate Arrays are a viable platform on which to implement wide bandwidth polyphase filterbank spectrometers. I have implemented such a spectrometer using the Xilinx toolflow and CASPER block libraries. In this chapter I detailed the implementation and presented results on its performance.
+Polyphase filterbanks have attractive characteristics for radio astronomy applications. They offer excellent interchannel isolation and can be implemented using efficient FFT based structures. Field Programmable Gate Arrays are a viable platform on which to implement wide bandwidth polyphase filterbank spectrometers.
 
 \section{Acknowledgements}
 
 The authors thank members of the CASPER collaboration for sharing their extensive knowledge with the wider community. D. Price thanks J. Moran for thorough discussion and debate on the virtues of polyphase filterbanks. 
 
-\bibliographystyle{plain}
+\bibliographystyle{ws-rv-van}
 \bibliography{spectrometers,references}
 
 \end{document}

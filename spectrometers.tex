@@ -22,7 +22,7 @@
 
 \chapter[Spectrometers]{Spectrometer systems for radio astronomy}\label{spec_chap}
 
-\author[D. Price, J. Hickish and D. Werthimer]{Danny C. Price, Jack Hickish and Dan Werthimer}
+\author[D. Price]{Danny C. Price}
 
 \address{Campbell Hall 339, UC Berkeley\\
 Address goes here, \\
@@ -37,7 +37,7 @@ This review gives an introduction to spectrometers and discusses their use withi
 
 \body
 
-\section{Introduction}\label{introduction}
+\section{Introduction}\label{sec:intro}
 
 A \emph{spectrometer} is a device used to record and measure the spectral content of signals, such as radio waves received from astronomical sources. Specifically, a spectrometer measures the power spectral density (PSD, measured in units of $\rm{WHz}^{-1}$) of a signal. Analysis of spectral content can reveal details of radio sources, as well as properties of the intervening medium. For example, spectral line emission from simple molecules such as neutral hydrogen gives rise to narrowband radio signals (Fig.~1), while continuum emission from active galactic nuclei gives rise to wideband signals.
 
@@ -361,6 +361,7 @@ Decimating polyphase filter structures are more efficient than standard FIR filt
 
 A comprehensive overview of polyphase filters is given by Vaidyanathan\citet{Vaidyanathan:1990p6127}, and in Chapter~2 of Harris\citet{BookHarrisMultirateDSP}; I will give a brief introduction here. 
 
+
 \subsection{The Fast Fourier Transform\label{sub:fft}}
 
 The Fast Fourier Transform\cite{Cooley1965} (FFT) is a highly efficient algorithm for computing the DFT of a signal with regularly-spaced samples\footnote{Nyquist and quadrature sampled signals have regularly spaced samples.}. To directly compute the DFT
@@ -369,15 +370,21 @@ X(k)=\sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N}\label{eq:dft1}
 \end{equation}
 would require of order $O(N^2)$ operations, but the FFT algorithm reduces this to only $O(N \rm{log_2}$$N)$ operations. FFT implementations often exhibit best performance when $N$ is a power of 2. 
 
+
+\begin{figure}
+ \centering
+ \includegraphics[width=0.9\textwidth]{./figures/wiener}
+ \caption{Diagram showing the two methods used to compute the PSD of a signal. The top path corresponds to an ACS system while the bottom corresponds to an FTF system. The two approaches are related by the Wiener-Khinchin theorem. \label{fig:wiener}  }
+\end{figure}
+
 \section{Digital spectrometers}
+As discussed in Sec.~\ref{sec:intro}, there are two equivalent paths that may be used to compute the PSD of a signal, as shown in  Fig.~\ref{fig:wiener}. These are referred to as ACS and FTF systems. As the DFT must be computed over a finite number of points, ACS and FTF systems have different characteristics; we discuss these in separate subsections below. Given their growing ubiquity, PFB systems (which are essentially enhanced FTF spectrometers) are detailed at length in Sec.~\ref{sub:pfb}.
 
-The first digital spectrometer used for radio astronomy was developed by Weinreb\citet{Weinreb:1963p10042} in 1963. This 1-bit ACS was used to observe the 18-cm wavelength hydroxyl (OH) absorption line in the spectrum of Cassiopeia A, providing the first evidence of OH in the interstellar medium \citep{Weinreb:1963p9992}. The first reference to FTF spectrometers for radio astronomy can be found in \citet{Chikada:1987p10044}; however FTF spectrometers did not enjoy widespread adoption until much later. This is due to implementation issues, such as increased data output rates as compared to ACS implementations; see \citet{Bunton2000}, for a discussion of these issues.
-
+The first digital spectrometer used for radio astronomy was developed by Weinreb\citet{Weinreb:1963p10042} in 1963 -- two years before the FFT algorithm was introduced by Cooley \& Tukey\cite{Cooley1965}. This 1-bit ACS was used to observe the 18-cm wavelength hydroxyl (OH) absorption line in the spectrum of Cassiopeia A, providing the first evidence of OH in the interstellar medium \citep{Weinreb:1963p9992}. The first reference to FTF spectrometers for radio astronomy can be found in Chikada et. al.\citet{Chikada:1987p10044}; however FTF spectrometers did not enjoy widespread adoption until much later. The PFB architecture was first expounded by Bellanger\cite{Bellanger:1976p7898} in 1976, but was not introduced for the purposes of radio astronomy spectrometry until 2000\cite{Bunton2000}.
 
 
 \subsection{Autocorrelation spectrometers}\label{sub:acs}
 
-ACS spectrometers 
 Regardless of ACS implementation, the PSD (Eq.~\ref{eq:psd}) is computed for only a discrete range of delays, $\tau$. The spacing of lags in an ACS determines how much bandwidth it can process without aliasing occurring. The Nyquist criterion is satisfied when there are two taps per wave period at the highest frequency (shortest wavelength) signal of interest. 
 
 

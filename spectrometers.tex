@@ -74,11 +74,19 @@ where $X(k)$ denotes the Discrete Fourier Transform (DFT) of $x(t)$:
 X(k)=\sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N}\label{eq:dft1}
 \end{equation}
 
-There are therefore two distinct classes of spectrometers: ones that approximate $S_{xx}(k)$ by firstly forming the autocorrelation, then taking a Fourier transform ala Eq.~\ref{eq:discrete-wiener}, and those that first convert into the frequency domain to form $X(k)$ before evaulating Eq.~\ref{eq:discrete-pow}. We will refer to these as autocorrelation spectrometers (ACS, Sec.~\ref{sub:acs}), and Fourier transform filterbanks (FTF, Sec.~\ref{sub:ftf}), respectively. Polyphase filterbank spectrometers (PFB, Sec.~\ref{sub:pfb}) can be thought of as an  FTF with enhanced filter response.
+There are therefore two distinct classes of spectrometers: ones that approximate $S_{xx}(k)$ by firstly forming the autocorrelation, then taking a Fourier transform a~la Eq.~\ref{eq:discrete-wiener}, and those that first convert into the frequency domain to form $X(k)$ before evaulating Eq.~\ref{eq:discrete-pow}. These two routes are shown diagramatically in Fig.~\ref{fig:wiener}. We will refer to these as autocorrelation spectrometers (ACS, Sec.~\ref{sub:acs}), and Fourier transform filterbanks (FTF, Sec.~\ref{sub:ftf}), respectively. Polyphase filterbank spectrometers (PFB, Sec.~\ref{sub:pfb}) can be thought of as an  FTF with enhanced filter response. It is important to note that because the DFT is an \emph{approximation} to the continuous Fourier Transform, ACS and FTF systems have different characteristics. 
+
+% FIGURE
+\begin{figure}[t]
+ \centering
+ \includegraphics[width=0.9\textwidth]{./figures/wiener}
+ \caption{The two methods used to compute the PSD of a signal. The top path corresponds to an ACS system while the bottom corresponds to an FTF system. The two approaches are related by the Wiener-Khinchin theorem. \label{fig:wiener}  }
+\end{figure}
+% FIGURE
 
 \subsection{Analysis and synthesis filterbanks}
 
-It is important to note the relationship between spectrometers, filters, and filterbanks. A \emph{filterbank} is simply an array of band-pass filters, designed to split an input signal into multiple components, or similarly, to combine multiple components. These are referred to as \emph{analysis} and \emph{synthesis} filterbanks, respectively. When applied to streaming data, a DFT can be considered an analysis filterbank, and an inverse DFT to be a synthesis filterbank; we return to this in XX. From this viewpoint, a spectrometer is simply an analysis filterbank, where the output of each filter is squared and averaged.
+It is important to note the relationship between spectrometers, filters, and filterbanks. A \emph{filterbank} is simply an array of band-pass filters, designed to split an input signal into multiple components, or similarly, to combine multiple components. These are referred to as \emph{analysis} and \emph{synthesis} filterbanks, respectively. When applied to streaming data, a DFT can be considered an analysis filterbank, and an inverse DFT to be a synthesis filterbank. From this viewpoint, a spectrometer is simply an analysis filterbank, where the output of each filter is squared and averaged.
 
 Analysis and synthesis filterbanks have many applications outside of astronomy, see [REF] for further discussion.
 
@@ -138,15 +146,27 @@ In order to focus on the fundamental characteristics of spectrometers, the remai
  \caption{Comparison of the filter response of a, ACS (dotted line), FTF (dashed line) and an 8-tap, Hann-windowed PFB (solid line).\label{fig:leakage}}
 \end{figure}
 
-There are several important characteristics to consider when comparing spectrometer implementations. Spectrometers operate over a finite bandwidth $B$, over which $N$ channels with bandwidth $\Delta\nu = B/N$ are computed. With digital filters, it is possible for each channel to be evenly spaced and to have identical filter shapes. 
+%There are several important characteristics to consider when comparing spectrometer implementations. 
 
-Ideally, each channel would have unitary response over $\nu_c \pm \frac{\Delta\nu}{2}$, where $\nu_c$ is the center frequency, with zero response outside this passband. In practice, this cannot be achieved; each channel has a non-zero response over all frequencies. Fig.~\ref{fig:leakage} compares the normalized filter response for ACS, FTF and PFB implementations. As such, a signal will `leak' between neighboring channels, known as \emph{spectral leakage}. In the presence of strong narrowband signals, such as radio interference (RFI), spectral leakage is a major concern.
+\subsubsection{Spectral leakage}
+Spectrometers operate over a finite bandwidth $B$, over which $N$ channels with bandwidth $\Delta\nu = B/N$ are computed. With digital filters, it is possible for each channel to be evenly spaced and to have identical filter shapes. 
+
+Ideally, each channel would have unitary response over $\nu_c \pm \frac{\Delta\nu}{2}$, where $\nu_c$ is the center frequency, with zero response outside this passband. In practice, this cannot be achieved; each channel has a non-zero response over all frequencies.  As such, a signal will `leak' between neighboring channels, known as spectral leakage.
+
+Fig.~\ref{fig:leakage} compares the normalized filter response for ACS, FTF and PFB implementations. In the presence of strong narrowband signals, such as radio interference (RFI), spectral leakage is a major concern.
+
+\subsubsection{Scalloping loss} 
 
 A related concern is that the channel's non-ideal shape will cause narrowband signals at channel edges to be attenuated, an effect known as scalloping loss (Fig.~\ref{fig:scalloping}). Spectrometers are often designed such that neighboring channels overlap at their full-width at half-maximum points (FWHM), in which case the signal will be spread evenly over both channels. Wideband signals are not affected by scalloping. 
 
-Two other important factors are 1) the minimum and maximum integration times, $t_{\rm{min}}$ and $t_{\rm{max}}$, over which a spectrometer may operate, and 2) the dynamic range (DR), the span of powers over which a spectrometer can operate nominally. These factors are generally enforced by hardware limitations. Detection of transient phenomena, such as fast radio bursts (FRBs [REF]) and pulsars, require $t_{\rm{min}}$ to be as short as a nanosecond; integration lengths of several seconds are common when observing faint sources. The presence of RFI is often the main driver for dynamic range; see Sec.~\ref{sub:dynamic-range}.
+\subsubsection{Time resolution} 
 
-PFB spectrometers offer less scalloping loss and spectral leakage than both ACS and FTF implementations. Nevertheless, ACS and FTF systems are still encountered within radio astronomy. Further comparison of architectures is given in Sec.~\ref{sub:comparison}.
+Time resolution refers to the minimum integration time, $t_{\rm{min}}$, over which a spectrometer computes the time average. Detection of transient phenomena, such as fast radio bursts (FRBs [REF]) and pulsars, require $t_{\rm{min}}$ to be as short as a nanosecond; integration lengths of several seconds are common when observing faint sources. The minimum and maximum averaging times are generally enforced by hardware limitations.
+
+\subsubsection{Dynamic range}
+Dynamic range (DR) refers to the span of input powers over which a spectrometer can operate nominally. The presence of RFI and the input bandwidth are the main drivers for dynamic range; see Sec.~\ref{sub:dynamic-range}.
+
+%PFB spectrometers offer less scalloping loss and spectral leakage than both ACS and FTF implementations. Nevertheless, ACS and FTF systems are still encountered within radio astronomy. Further comparison of architectures is given in Sec.~\ref{sub:comparison}.
 
 \begin{figure}
  \centering
@@ -174,7 +194,6 @@ Sampling at the  Nyquist rate is referred to as \emph{critical sampling}, under 
 
 Undersampling a signal causes an effect known as \emph{aliasing} to occur, whereby different parts of a signal are indistinguishable from each other, resulting in information loss. Note that oversampling a signal does not increase the information content, but under certain circumstances is advantageous for reducing noise and/or distortion.
 
-Compressed sampling [REF] is a recently discovered technique in which signals that exhibit sparsity can be reconstructed using fewer samples than the Nyquist rate. To date, compressive sampling has not been employed in radio astronomy spectrometers.
 
 \subsubsection{Quadrature sampling}
 
@@ -187,6 +206,9 @@ A Nyquist-sampled signal $x(t)$ centered at $\nu_0$ can be converted into a quad
 which is known as quadrature mixing.
 
 The similarity between the phasor $e^{-2\pi i \nu_0 t}$ and that encountered in a DFT is noteworthy: each channel of a DFT can be seen quadrature mixing the input signal, applying a filter of width $B$, and then downsampling the signal to a rate $\nu_s=B$.
+
+\subsubsection{Compressed sampling}
+Compressed sampling [REF] is a recently discovered technique in which signals that exhibit sparsity can be reconstructed using fewer samples than the Nyquist rate. To date, compressive sampling has not been employed in radio astronomy spectrometers.
 
 \subsubsection{Quantization efficiency \label{sub:quant}}
 
@@ -371,16 +393,13 @@ X(k)=\sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N}\label{eq:dft1}
 would require of order $O(N^2)$ operations, but the FFT algorithm reduces this to only $O(N \rm{log_2}$$N)$ operations. FFT implementations often exhibit best performance when $N$ is a power of 2. 
 
 
-\begin{figure}
- \centering
- \includegraphics[width=0.9\textwidth]{./figures/wiener}
- \caption{Diagram showing the two methods used to compute the PSD of a signal. The top path corresponds to an ACS system while the bottom corresponds to an FTF system. The two approaches are related by the Wiener-Khinchin theorem. \label{fig:wiener}  }
-\end{figure}
+
 
 \section{Digital spectrometers}
 As discussed in Sec.~\ref{sec:intro}, there are two equivalent paths that may be used to compute the PSD of a signal, as shown in  Fig.~\ref{fig:wiener}. These are referred to as ACS and FTF systems. As the DFT must be computed over a finite number of points, ACS and FTF systems have different characteristics; we discuss these in separate subsections below. Given their growing ubiquity, PFB systems (which are essentially enhanced FTF spectrometers) are detailed at length in Sec.~\ref{sub:pfb}.
 
 The first digital spectrometer used for radio astronomy was developed by Weinreb\citet{Weinreb:1963p10042} in 1963 -- two years before the FFT algorithm was introduced by Cooley \& Tukey\cite{Cooley1965}. This 1-bit ACS was used to observe the 18-cm wavelength hydroxyl (OH) absorption line in the spectrum of Cassiopeia A, providing the first evidence of OH in the interstellar medium \citep{Weinreb:1963p9992}. The first reference to FTF spectrometers for radio astronomy can be found in Chikada et. al.\citet{Chikada:1987p10044}; however FTF spectrometers did not enjoy widespread adoption until much later. The PFB architecture was first expounded by Bellanger\cite{Bellanger:1976p7898} in 1976, but was not introduced for the purposes of radio astronomy spectrometry until 2000\cite{Bunton2000}.
+
 
 
 \subsection{Autocorrelation spectrometers}\label{sub:acs}
@@ -585,7 +604,7 @@ Polyphase filterbanks have attractive characteristics for radio astronomy applic
 
 \section{Acknowledgements}
 
-The authors thank members of the CASPER collaboration for sharing their extensive knowledge with the wider community. D. Price thanks J. Moran for thorough discussion and debate on the virtues of polyphase filterbanks. 
+The authors thank members of the CASPER collaboration for sharing their extensive knowledge with the wider community. D. Price thanks J. Moran for thorough discussion and debate on the virtues of polyphase filterbanks, J. Bunton for clarifying the history of PFBs in radio astronomy, and D. Werthimer and 
 
 \bibliographystyle{ws-rv-van}
 \bibliography{spectrometers,references}

@@ -2,7 +2,7 @@
 %% http://bibdesk.sourceforge.net/
 
 
-%% Created for Danny Price at 2016-05-15 21:35:02 -0700 
+%% Created for Danny Price at 2016-05-15 20:36:40 -0700 
 
 
 %% Saved with string encoding Unicode (UTF-8) 
@@ -119,8 +119,8 @@
 	Year = {1965}}
 
 @article{Montebugnoli1996,
-	Author = {Montebugnoli, S. and Bortolotti, C. and Buttaccio, S. and others},
-	Date-Modified = {2016-05-16 04:35:02 +0000},
+	Author = {Montebugnoli, S. and Bortolotti, C. and Buttaccio, S. and Cattani, A. and D'Amico, N. and Grueff, G. and Maccaferri, A. and Maccaferri, G. and Orfei, A. and Roma, M. and Tuccari, G. and Tugnoli, M.},
+	Date-Modified = {2016-05-16 02:56:56 +0000},
 	Journal = {Review of Scientific Instruments},
 	Number = {2},
 	Pages = {365-370},
@@ -131,6 +131,7 @@
 	Bdsk-Url-2 = {http://dx.doi.org/10.1063/1.1146596}}
 
 @article{Anderson2002,
+<<<<<<< HEAD
 	Acmid = {581573},
 	Address = {New York, NY, USA},
 	Author = {Anderson, David P. and Cobb, Jeff and Korpela, Eric and Lebofsky, Matt and Werthimer, Dan},
@@ -161,6 +162,48 @@
 	Title = {A Multi-GPU Spectrometer System for Real-Time Wide Bandwidth Radio Signal Analysis},
 	Year = {2010},
 	Bdsk-Url-1 = {http://dx.doi.org/10.1109/ISPA.2010.53}}
+=======
+ author = {Anderson, David P. and Cobb, Jeff and Korpela, Eric and Lebofsky, Matt and Werthimer, Dan},
+ title = {SETI@Home: An Experiment in Public-resource Computing},
+ journal = {Commun. ACM},
+ issue_date = {November 2002},
+ volume = {45},
+ number = {11},
+ month = nov,
+ year = {2002},
+ issn = {0001-0782},
+ pages = {56--61},
+ numpages = {6},
+ url = {http://doi.acm.org/10.1145/581571.581573},
+ doi = {10.1145/581571.581573},
+ acmid = {581573},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+@INPROCEEDINGS{Kondo2010,
+author={H. Kondo and E. Heien and M. Okita and D. Werthimer and K. Hagihara}, 
+booktitle={International Symposium on Parallel and Distributed Processing with Applications}, 
+title={A Multi-GPU Spectrometer System for Real-Time Wide Bandwidth Radio Signal Analysis}, 
+year={2010}, 
+pages={594-604}, 
+keywords={astronomy computing;computer graphic equipment;coprocessors;fast Fourier transforms;multiprocessing systems;signal processing;spectrometers;SERENDIP project;compute unified device architecture;fast Fourier transform;multiGPU spectrometer system;nearby developed intelligent populations;pipeline execution;radio astronomy observation;redundant calculation;search for extraterrestrial radio emissions;spectrum analysis;wide bandwidth radio signal analysis;Bandwidth;Field programmable gate arrays;Graphics processing unit;Instruction sets;Kernel;Radio astronomy;Real time systems;GPGPU;Radio Analysis;Real-Time Processing}, 
+doi={10.1109/ISPA.2010.53}, 
+ISSN={2158-9178}, 
+month={Sept},
+}
+
+@article{Finger2013,
+  author={Ricardo Finger and Patricio Mena and Nicolás Reyes and Rafael Rodriguez and Leonardo Bronfman},
+  title={A Calibrated Digital Sideband Separating Spectrometer for Radio Astronomy Applications},
+  journal={Publications of the Astronomical Society of the Pacific},
+  volume={125},
+  number={925},
+  pages={263},
+  url={http://stacks.iop.org/1538-3873/125/i=925/a=263},
+  year={2013},
+  abstract={Dual sideband (2SB) receivers are well suited for the spectral observation of complex astronomical signals over a wide frequency range. They are extensively used in radio astronomy, their main advantages being to avoid spectral confusion and to diminish effective system temperature by a factor 2 with respect to double sideband (DSB) receivers. Using available millimeter-wave analog technology, wideband 2SB receivers generally obtain sideband rejection ratios (SRR) of 10-15 dB, insufficient for a number of astronomical applications. We report here the design and implementation of an FPGA-based sideband separating FFT spectrometer. A 4 GHz analog front end was built to test the design and measure sideband rejection. The setup uses a 2SB front end architecture, except that the mixer outputs are directly digitized before the IF hybrid, using two 8 bit ADCs sampling at 1 GSPS. The IF hybrid is implemented on the FPGA together with a set of calibration vectors that, properly chosen, compensate for the analog front end amplitude and phase imbalances. The calibrated receiver exhibits a sideband rejection ratio in excess of 40 dB for the entire 2 GHz RF bandwidth.}
+}
+>>>>>>> 1d736e8b034b3a1612b74f3ed5e01aee55793ab3
 
 @article{Stanko2005,
 	Author = {{Stanko, S.} and {Klein, B.} and {Kerp, J.}},
@@ -209,17 +252,15 @@ astronomy. GUPPI is modular for portability, and the NRAO provides the results o
 	Bdsk-Url-1 = {http://dx.doi.org/10.1117/12.790003}}
 
 @article{hochman2014splash,
-	Author = {Hochman, Rachel and Wagner, Mark and Richards, Brian and others},
-	Date-Modified = {2016-05-16 04:34:30 +0000},
+	Author = {Hochman, Rachel and Wagner, Mark and Richards, Brian and Nikolic, Borivoje and Werthimer, Dan},
 	Journal = {BWRC Technical Reports},
 	Title = {SPLASH: Single-chip Planetary Low-power ASIC Spectrometer with High-resolution},
 	Volume = {230},
 	Year = {2014}}
 
 @inproceedings{Prestage2015,
-	Author = {R. M. Prestage and M. Bloss and J. Brandt and others},
+	Author = {R. M. Prestage and M. Bloss and J. Brandt and H. Chen and R. Creager and P. Demorest and J. Ford and G. Jones and A. A. Kepley and A. Kobelski and P. Marganian and M. Mello and D. McMahon and R. McCullough and J. Ray and D. A. Roshi and D. Werthimer and M. Whitehead},
 	Booktitle = {Radio Science Meeting (Joint with AP-S Symposium), 2015 USNC-URSI},
-	Date-Modified = {2016-05-16 04:33:36 +0000},
 	Doi = {10.1109/USNC-URSI.2015.7303578},
 	Month = {July},
 	Pages = {294-294},
@@ -243,8 +284,7 @@ astronomy. GUPPI is modular for portability, and the NRAO provides the results o
 	Adsnote = {Provided by the SAO/NASA Astrophysics Data System},
 	Adsurl = {http://adsabs.harvard.edu/abs/2011arXiv1109.1136S},
 	Archiveprefix = {arXiv},
-	Author = {{Siemion}, A.~P.~V. and {Cobb}, J. and {Chen}, H. and others},
-	Date-Modified = {2016-05-16 04:34:06 +0000},
+	Author = {{Siemion}, A.~P.~V. and {Cobb}, J. and {Chen}, H. and {Cordes}, J. and {Filiba}, T. and {Foster}, G. and {Fries}, A. and {Howard}, A. and {von Korff}, J. and {Korpela}, E. and {Lebofsky}, M. and {McMahon}, P.~L. and {Parsons}, A. and {Spitler}, L. and {Wagner}, M. and {Werthimer}, D.},
 	Eprint = {1109.1136},
 	Journal = {ArXiv e-prints},
 	Keywords = {Astrophysics - Instrumentation and Methods for Astrophysics},

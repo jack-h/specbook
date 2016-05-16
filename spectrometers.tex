@@ -555,48 +555,59 @@ The main advantage of the analog autocorrelator over its digital counterpart (Se
 %\subsection{Hybrid Analog-Digital}\label{hybrid-analog-digital}
 
 
-\section{Design considerations and examples}
-
-\subsection{Calibration requirements}
-Dicke switching and calibration. Other data products: spectral kurtosis.
-
-Jansky and Temperature 
-\subsection{Time and frequency standards}
-\subsection{Telescope metadata}
-\subsection{File formats}
-
-
 \subsection{Current technology}
 
-* table of digitizers
+Most modern implementations of spectrometers in radio astronomy use digital polyphase filterbanks, which leverage the inherent flexibility of digital signal processing to provide high-performance and versitility. Such a spectrometer requires signals be digitized using a high-speed Analog to Digital converter (ADC), before digital filtering can take place on a high-performance computing platform.
+A selection of currently available high-speed ADCs is given in Tab.~\ref{tab:adcs}.
 
-* FPGA, CPU and GPU comparison
+\begin{table}
+    \label{tab:adcs}
+	\caption{Currently available digitizers.}
+	\begin{center}
+	\begin{tabular}{c c c c c c}
+	\hline
+	Sample rate [GS/s] & Input bandwidth [GHz] & Number of bits & Manufacturer & Part & Notes \\
+    \hline
+    5 & 2 & 8 & e2v & EV8AQ160 & Interleaves 4 1.25~GS/s ADC cores\\
+	15 & 20 & 4 & Adsantec & ASNT7122\footnote{\url{http://www.adsantec.com/304-asnt7122-kma.html}} & \\
+	26 & 20 & 3 (plus overrange) & Analog Devices & HMCAD5831\footnote{\url{http://www.analog.com/en/products/analog-to-digital-converters/ad-converters/hmcad5831.html}} & \\
+	30 & 20 & 6 & Micram & ADC30\footnote{\url{http://micram.net/products/vega-signal-converters/adc30/}} & \\
+	& & & \\
+	\hline
+	\end{tabular}
+	\end{center}
+\end{table}
 
-What's Available Commercially
+Once analog signals are digitally sampled, a variety of signal-processing platforms are available on which to implement the algorithms described earlier in this chapter.
+\paragraph{Central Processing Units (CPUs)}, of the type found in widely available laptop and desktop computers are capable of processing only relatively small bandwidths, but are cheap and very easy to program. Though largely superceded in modern high-bandwidth systems, past examples of CPU-based spectrometers in astronomy include \cite{Montebugnoli1996} and UC Berkeley's distributed SETI@home project \citep{Anderson2002}.
 
-\begin{itemize}
-	\item GPU
-    \item CPU
-    \item ASIC
-    \item FPGA
-    \item Heterogeneous	
-\end{itemize}
+\paragraph{Graphics Processing Units (GPUs)} are processors with thousands of arithmetic cores, capable of performing many trillions of operations every second.
+GPUs are available as ``graphics cards'': expansion cards that can be added to off-the-shelf computer systems.
+GPU development is driven by the computer gaming industry, but over the last decade an increasing focus has been placed byi GPU manufacturers on General-Purpose GPU (GPGPU) computing uses. GPUs have gained significant traction in spectrometers where large FFTs are required in order to achieve high spectral resolution such as \cite{Kondo2010}.
+
+\paragraph{Field Programmable Gate Arrays (FPGAs)} are logic chips which incorporate many thousands of arithmetic cores in a fabric of programmable logic and interconnect.
+FPGAs excel at processing large data rates and provide low-level interfacing capabilities, allowing them to be directly connected to modern ADC chips.
+While an increasing number of off-the-shelf FPGA platforms are available, the needs of radio astronomers often requires the design of custom boards.
+FPGAs are also relatively difficult to program, with specialist knowledge of their underlying hardware details neede to utilise them efficiently. FPGAs have smaller quantities of memory than CPU or GPU processors, and are often used for high data-rate, coarse-resolution spectrometers \citep{Stanko2005, Finger2012}.
+
+\paragraph{Application Specific Integrated Circuits (ASICs)} are custom-designed chips, with underlying circuitry dedicated to performing the operations defined by the designer. The custom nature of an ASIC makes it the most power-efficient computing platform though this efficiency comes at the cost of large development time and effort.
+With the increasing performance and power-efficiency of FPGAs and GPUs, ASIC development is not as prevalent in radio astronomy as it once was.
+However, ASICs may still be desirable for space-based spectrometers, where power-efficiency is paramount (see, for example, \cite{hochman2014splash}).
+
+In many cases a spectrometer may be heterogeneous in nature, with different stages of processing performed on different hardware platforms.
+Frequently, FPGAs are used to facilitate interfacing a high speed ADC chip with a network of CPU or GPU signal processing devices \citep{Siemion2011}. 
+Spectrometers such as the \emph{VEGAS} spectrometer at the Robert C. Byrd Green Bank Telescope \citep{Prestage2015} also utilise FPGAs for ADC interfacing and coarse channelisation, before signals are further filtered to a fine frequency resolution using GPUs.
 
 
-\subsection{GnuRadio}
+\subsection{Common Infrastructure Developement}
+The rapid increasing performance of signal processing hardware and the common requirements of different observatories mean that sharing the development of new processing platforms incorporating the latest processors can be very beneficial to the radio astronomy community.
 
-\subsection{CASPER Hardware}
+CPU and GPU processing platforms are developed by commercial entities, motivated by the non-astronomy markets. However, leveraging the latest hardware requires uses to have access to flexible programming tools and software libraries. A number of open-source projects have emerged trying to serve this need.
+The GNU Radio project\footnote{\url{gnuradio.org}} provides a software environment for rapid development of CPU-based instruments for processing radio signals.
+A number of radio astronomy projects have also developed generic software pipelines for streaming data between Ethernet networks, CPUs and GPUs (see, for example, \cite{Recnik2015}, HASHPIPE\footnote{\url{https://github.com/david-macmahon/hashpipe}} and Bifrost\footnote{\url{https://github.com/benbarsdell/bifrost}}).
 
-* Fast Readout Spectrometers for Pulsar Timing and Search
-
-* Multibeam spectrometer systems
-
-
-\subsection{Example implementations}
-
-* HIPSR
-* Effelsberg?
-* Breakthrough listen
+FPGA platforms are expensive to design and manufacture. For this reason, radio-astronomy groups such as the Collaboration for Astronomy Signal Processing and Electronics Research (CASPER\footnote{\url{https://casper.berkeley.edu}}) have developed a variety of general-purpose FPGA-based platforms which can interface with a suite of connectorized ADC cards.
+CASPER provide a variety of open-source software tools and libraries with the aim of simplifying FPGA programming and enabling straightforward upgrading of instruments when newer more capable hardware becomes available.
 
 \section{Conclusions}
 

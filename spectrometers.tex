@@ -207,8 +207,8 @@ which is known as quadrature mixing.
 
 The similarity between the phasor $e^{-2\pi i \nu_0 t}$ and that encountered in a DFT is noteworthy: each channel of a DFT can be seen quadrature mixing the input signal, applying a filter of width $B$, and then downsampling the signal to a rate $\nu_s=B$.
 
-\subsubsection{Compressed sampling}
-Compressed sampling [REF] is a recently discovered technique in which signals that exhibit sparsity can be reconstructed using fewer samples than the Nyquist rate. To date, compressive sampling has not been employed in radio astronomy spectrometers.
+% \subsubsection{Compressed sampling}
+% Compressed sampling [REF] is a recently discovered technique in which signals that exhibit sparsity can be reconstructed using fewer samples than the Nyquist rate. To date, compressive sampling has not been employed in radio astronomy spectrometers.
 
 \subsubsection{Quantization efficiency \label{sub:quant}}
 
@@ -386,14 +386,13 @@ A comprehensive overview of polyphase filters is given by Vaidyanathan\citet{Vai
 
 \subsection{The Fast Fourier Transform\label{sub:fft}}
 
-The Fast Fourier Transform\cite{Cooley1965} (FFT) is a highly efficient algorithm for computing the DFT of a signal with regularly-spaced samples\footnote{Nyquist and quadrature sampled signals have regularly spaced samples.}. To directly compute the DFT
+The Fast Fourier Transform\cite{Cooley1965, BookBrighamFFT, BookSmithFFT} (FFT) is a highly efficient algorithm for computing the DFT of a signal with regularly-spaced samples\footnote{Nyquist and quadrature sampled signals have regularly spaced samples.}. To directly compute the DFT
 \begin{equation}
 X(k)=\sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N}\label{eq:dft1}
 \end{equation}
-would require of order $O(N^2)$ operations, but the FFT algorithm reduces this to only $O(N \rm{log_2}$$N)$ operations. FFT implementations often exhibit best performance when $N$ is a power of 2. 
+would require of order $O(N^2)$ operations, but the FFT algorithm reduces this to only $O(N \rm{log_2}$$N)$ operations. FFT implementations generally exhibit best performance when $N$ is a power of 2. 
 
-
-
+For real-valued data, only $N/2$ channels are unique. FFT algorithms often exploit this for increased efficiency, by recasting the real-valued input data as complex values.
 
 \section{Digital spectrometers}
 As discussed in Sec.~\ref{sec:intro}, there are two equivalent paths that may be used to compute the PSD of a signal, as shown in  Fig.~\ref{fig:wiener}. These are referred to as ACS and FTF systems. As the DFT must be computed over a finite number of points, ACS and FTF systems have different characteristics; we discuss these in separate subsections below. Given their growing ubiquity, PFB systems (which are essentially enhanced FTF spectrometers) are detailed at length in Sec.~\ref{sub:pfb}.
@@ -404,29 +403,28 @@ The first digital spectrometer used for radio astronomy was developed by Weinreb
 
 \subsection{Autocorrelation spectrometers}\label{sub:acs}
 
-Regardless of ACS implementation, the PSD (Eq.~\ref{eq:psd}) is computed for only a discrete range of delays, $\tau$. The spacing of lags in an ACS determines how much bandwidth it can process without aliasing occurring. The Nyquist criterion is satisfied when there are two taps per wave period at the highest frequency (shortest wavelength) signal of interest. 
+Digital autocorrelators implement the autocorrelators delay-and-multiply circuitry using digital delays -- shift registers -- and digital multiplier cores to compute signal products. For an ACS implementation, the PSD (Eq.~\ref{eq:psd}) is computed for only a discrete range of delays, $\tau$. The spacing of lags in an ACS determines how much bandwidth it can process without aliasing occurring. The Nyquist criterion is satisfied when there are two taps per wave period at the highest frequency (shortest wavelength) signal of interest.
 
-
-Digital autocorrelators implement the autocorrelators delay-and-multiply circuitry using digital delays -- shift registers -- and digital multiplier cores to compute signal products. As a result, digital correlators can have much more predictable performance than their analog counterparts whose processing is subject to small errors in delay line lengths and other subtle analog effects. 
-
+ACS systems exhibit poorer spectral leakage than FTF systems, due to the order of operations in Fig.~\ref{fig:wiener}. They also require more compute operations, $O(N^2)$, than FTF implementations, $O(N~log_{2}N)$. With current digital technology there is no compelling reason to implement an ACS spectrometer. The prevalence of ACS systems in early digital spectrometers may be explained by two reasons: 1) they predate the FFT algorithm; 2) for 1-bit data they can be implemented using boolean circuits. 
 
 \subsection{Fourier transform spectrometers}\label{sub:ftf}
 
 FTF spectrometers compute the PSD of a signal by applying a DFT of length $N$ to an input signal, squaring the DFT output, then taking an average over time. 
 
 %It is important to note that the DFT is computed over windows of length $N$ on the signal $x(t)$, which is essentially infinite in length. 
-For a signal with sampling rate $\nu_s=2B$, each DFT channel has a bandwidth $B/N$, and a quadrature-sampled output rate of $\nu_s/2N = B/N$. As mentioned in Sec.~\ref{sub:sampling}, the DFT (Eq.~\ref{eq:dft1}) may be thought of as the mixing of the input signal with a bank of oscillators, followed by an averaging with a square window function. In effect, this is a simple filterbank. Thinking of the DFT as a filterbank, instead of as a transformation of a time-domain signal into a frequency-domain signal, gives an alternative insight into how a spectrometer works.
+For a signal with sampling rate $\nu_s=2B$, each DFT channel has a bandwidth $B/N$, and a quadrature-sampled output rate of $\nu_s/2N = B/N$. As mentioned in Sec.~\ref{sub:sampling}, the DFT (Eq.~\ref{eq:dft1}) may be thought of as the mixing of the input signal with a bank of oscillators, followed by an averaging with a square window function. In effect, this is a simple filterbank. 
+%Thinking of the DFT as a filterbank, instead of as a transformation of a time-domain signal into a frequency-domain signal, gives an alternative insight into how a spectrometer works.
 
-For real-sampled data the negative frequencies contain no extra information, so they need not be computed. This leaves a a bank of $N/\mbox{2}$ filters, evenly spaced over a bandwidth $\nu_{s}/\mbox{2}$. 
+%For real-sampled data the negative frequencies contain no extra information, so they need not be computed. This leaves a a bank of $N/\mbox{2}$ filters, evenly spaced over a bandwidth $\nu_{s}/\mbox{2}$. 
 
 In general, computing Eq.~\ref{eq:dft1} for each value of $\nu_0$ requires $N$ multiplications, and $N$ additions. Since $\nu_0$ can take $N$ independent values itself, the total cost of implementing a DFT filterbank is $N^2$ operations per transform. If one transform is computed for every $N$ samples digitized, then the computation rate is of order $\nu_sN$ operations each second. 
 
-The FFT (Sec.~\ref{sub:fft}) allows Eq.~\ref{eq:dft1} to be evaluated in $O(N\log_2N)$ operations, or $\nu_s\log_2N$ when performed every $N$ samples. With computational savings of order $N / \log2{N}$ the FFT is an extraordinarily powerful algorithm, which is used heavily throughout radio astronomy. For a spectrometer of $~10^4$ channels, the FFT algorithm requires approximately $0.1\%$ as many operations as an autocorrelation spectrometer.
+The FFT (Sec.~\ref{sub:fft}) allows Eq.~\ref{eq:dft1} to be evaluated in $O(N\log_2N)$ operations, or $\nu_s\log_2N$ when performed every $N$ samples. With computational savings of order $N / \log2{N}$ the FFT is an extraordinarily powerful algorithm, which is used heavily throughout radio astronomy. For a spectrometer of $~10^4$ channels, the FFT algorithm requires approximately $0.1\%$ as many operations as an ACS system.
 
 
 \subsection{Polyphase filterbanks}\label{sub:pfb}
 
-The polyphase filterbank (PFB) structure\citet{Bellanger:1976p7898, Harris2011} was first proposed by Bellanger in 1976. A PFB is a computationally efficient implementation of a filterbank, constructed from an FFT preceded by a prototype polyphase FIR filter frontend. PFB-based spectrometers offer vastly lowered spectral leakage over both ACS and FTF architectures. 
+A PFB is a computationally efficient implementation of a filterbank, constructed from an FFT preceded by a prototype polyphase FIR filter frontend.\citet{Bellanger:1976p7898, Harris2011} PFB-based spectrometers offer vastly lowered spectral leakage over both ACS and FTF architectures. 
 %For radio astronomy purposes, high interchannel isolation is important so that spectral features are not smeared out, and so the spectrometer is more resilient to the high levels of radio frequency interference (RFI) emitted from terrestrial sources. Polyphase filterbanks are therefore the best candidate for radio astronomy spectrometers, if computationally affordable.
 
 The PFB exploits the fact that a lowpass filter with coefficients $h(k)$, can be converted into a quadrature bandpass filter with central frequency $\omega_{k}=2\pi\nu$ by multiplying the coefficients by $e^{i\omega_{k}t}$ . That is, 
@@ -453,32 +451,36 @@ this filterbank consists of $N$ filters spanning $-\nu_{s}/\mbox{2}$ to $\nu_{s}
 \begin{figure}
  \centering
  \includegraphics[width=\textwidth]{./figures/pfb_fir_fft}
- \label{fig:pfb_fir_fft}
- \caption{Polyphase filterbank streaming implementation.}
+ \caption{Polyphase filterbank streaming implementation.\label{fig:pfb_fir_fft}}
 \end{figure}
 
 \begin{figure}
  \centering
  \includegraphics[width=\textwidth]{./figures/pfb_chart}
- \label{fig:pfb_chart}
- \caption{}
+ \caption{\label{fig:pfb_chart}}
 \end{figure}
 
 
 %\subsubsection{Overlapping filterbanks}
 
-\subsection{Implementation comparison}\label{sub:comparison}
+%\subsection{Implementation comparison}\label{sub:comparison}
 
-ACS and FTF architectures differ in both their spectral response and the number of computations required to implement them. For regularly
-sampled data, the Fast Fourier Transform (FFT) algorithm may be used to compute the DFT (see, for example, \citep{BookBrighamFFT}),
-which reduces the number of computations required from $O(N^{2})$ for to $O(Nlog(N))$. In Chapter~4 of \citep{Taylor1999}, Romney
-shows that the ratio of multiplies for the two architectures is 
-\begin{equation}
-R_{\frac{ACS}{FTF}}=\frac{n_{t}}{\mbox{2}log_{2}(n_{t})},
-\end{equation}
-where $n_{t}$ is the number of samples per FFT or lag correlation. So in general, FTF architectures require fewer computations than their equivalent ACS counterpart. Romney also shows that the spectral response of FTF and ACS architectures differ, with ACS architectures having a $sinc$ reponse, and FTF architectures posessing a $sinc^{2}$ response. The result is that interchannel isolation is better in FTF architectures (first sidelobe at $\sim-\mbox{13.6}$ dB), than in ACS architectures ($\sim-\mbox{6.8}$ dB). 
+%ACS and FTF architectures differ in both their spectral response and the number of computations required to implement them. For regularly sampled data, the Fast Fourier Transform (FFT) algorithm may be used to compute the DFT (see, for example, \citep{BookBrighamFFT}), which reduces the number of computations required from $O(N^{2})$ for to $O(Nlog(N))$. In Chapter~4 of \citep{Taylor1999}, Romney shows that the ratio of multiplies for the two architectures is 
+%\begin{equation}
+%R_{\frac{ACS}{FTF}}=\frac{n_{t}}{\mbox{2}log_{2}(n_{t})},
+%\end{equation}
+%where $n_{t}$ is the number of samples per FFT or lag correlation. So in general, FTF architectures require fewer computations than their equivalent ACS counterpart. Romney also shows that the spectral response of FTF and ACS architectures differ, with ACS architectures having a $sinc$ reponse, and FTF architectures posessing a $sinc^{2}$ response. The result is that interchannel isolation is better in FTF architectures (first sidelobe at $\sim-\mbox{13.6}$ dB), than in ACS architectures ($\sim-\mbox{6.8}$ dB). 
 
 \subsection{Zoom modes}
+
+The output of each channel of a DFT-based filterbank is a critically-sampled quadrature time stream of its own right (before the signal is squared, that is). Higher spectral resolution can be achieved by passing the output of a `coarse' first-stage filterbank channel into a secondary DFT to apply finer channelization, after which the samples may be squared and averaged to compute the PSD. Spectrometers that employ this approach are known as \emph{zoom spectrometers}. 
+
+An extension of the zoom spectrometer can be used to efficiently develop filterbanks of many millions of channels. The second-stage filterbank in a zoom spectrometer only needs to run at $1/N$ the rate of its first-stage filterbank. If the second-stage DFT (of length $M$) is run at the same speed as the first-stage filterbank, one can run the second-stage DFT on every first-stage channel, instead of just one. The result is a filterbank with $N\times M$ channels. 
+
+To do so requires that the output of every first-stage channel is buffered so that there are $M$ samples per channel, then data must be rearranged and fed to the second-stage DFT in channel order. This reorder can be considered a matrix transpose (also called a \emph{cornerturn}), rearranging from ($N$, $M$) to ($M$, $N$) order.
+
+As an example, a zoom-style spectrometer with $N$=$M$=1024 has $N\times M / 2$=524,288 channels total. 
+
 
 \section{Alternative spectrometer implementations}
 
@@ -495,13 +497,17 @@ where $n_{t}$ is the number of samples per FFT or lag correlation. So in general
 A \emph{swept spectrometer} uses a variable oscillator with a heterodyne
 circuit and a low pass filter. The oscillator is typically varied, i.e.~swept, through a range of desired frequencies. As it is swept through the desired frequency range, the power of the low pass filter's output is measured and recorded. Most analog spectrum analyzers operate in this manner.
 
-An advantage of swept spectrometers is that they can operate over large RF bandwidths. However, as only a fraction of the band is detected at any one time, less integration time is available per frequency channel. For a swept spectrometer with $N$ channels with a sweep time of $t_{\rm{sweep}}$, the integration time available per channel is $t_{\rm{sweep}}/N$. It follows that  the RMS noise per channel is $\sqrt{N}$ higher than an equivalent filterbank spectrometer covering the entire RF bandwidth. As such, swept spectrometers are best suited for cases where signals of interest are strong and wideband. 
+An advantage of swept spectrometers is that they can operate over large RF bandwidths. However, as only a fraction of the band is detected at any one time, less integration time is available per frequency channel. 
+%For a swept spectrometer with $N$ channels with a sweep time of $t_{\rm{sweep}}$, the integration time available per channel is $t_{\rm{sweep}}/N$. It follows that  
+The RMS noise per channel in a swept spectrometer is $\sqrt{N}$ higher than an equivalent FTF spectrometer covering the entire RF bandwidth. As such, swept spectrometers are best suited for cases where signals of interest are strong and wideband. 
 
 \subsection{Analog filterbank}\label{analog-filter-bank}
 
-An analog filterbank is just what its name implies: a bank (or collection) of analog filters. The analog filters are designed to pass through different ranges of frequencies. The power of the analog filters' output is measured and recorded. By creating a bank of filters with adjacent and non-overlapping passband frequencies one can get a complete picture of the input signal's spectrum.
+An analog filterbank is just what its name implies: a bank (or collection) of analog filters. The analog filters are designed to pass through different ranges of frequencies. The power of each filter's output is measured and recorded, from which spectral features can be discerned. 
 
-Analog filterbanks can offer very wide bandwidths, but design of very narrowband filters is challenging. Additionally, the input signal must be split multiple times, and each time the signal is split, its power is halved. Unlike digital systems, the shape and gain of each filter may differ. For these reasons, analog filterbanks are uncommon in modern radio astronomy.
+% By creating a bank of filters with adjacent and non-overlapping passband frequencies one can get a complete picture of the input signal's spectrum.
+
+Analog filterbanks may offer very wide bandwidths, but design of very narrowband filters is challenging. Additionally, the input signal must be split multiple times, and each time the signal is split, its power halves. Unlike digital systems, the shape and gain of each filter may differ. For these reasons, analog filterbanks are uncommon in modern radio astronomy.
 
 \subsection{Analog autocorrelator spectrometers}\label{sub:analog-acs}
 %The power spectrum of a signal, $S(f)$,  is related to the signal's autocorrelation function, $R(\tau)$, over a range of time lags, $\tau$, by Fourier transform:
@@ -530,7 +536,7 @@ An analog ACS uses analog circuitry to implement multipliers and propagation tim
 %A typical schematic of an analog ACS is shown in Fig.~\ref{fig:analog-autocorr}. Here, outputs of each correlator tap are digitized after a small amount of time-averaging. Further averaging can take place digitally before computation of the power spectrum via cosine transform. 
 Details of specific scientific deployments of analog autocorrelation spectrometers can be found in \cite{Erickson2007} and \cite{Harris1998}.
 
-The main advantage of the analog autocorrelator over its digital counterpart (Sec.~\ref{sub:acs}) is that digitization need only take place at a rate commensurate with the averaging period of the correlator, rather than the bandwidth of the input signals. For this reason, analog autocorrelation spectrometers are usually seen in systems that have instantaneous bandwidths of many gigahertz which cannot be readily digitized by commercially available ADCs. In contrast, the number of physical components required scales with the number of channels, making analog ACS systems with many channels --- readily implemented by digital systems ---  infeasible.
+The main advantage of the analog autocorrelator over its digital counterpart (Sec.~\ref{sub:acs}) is that digitization need only take place at a rate commensurate with the averaging period of the correlator, rather than the bandwidth of the input signals. For this reason, analog ACS spectrometers are usually seen in systems that have instantaneous bandwidths of many gigahertz. Their major disadvantage is that the number of physical components required scales with the number of channels, making analog ACS systems with many channels --- readily implemented by digital systems ---  infeasible.
 
 
 %\begin{figure}
@@ -561,9 +567,9 @@ The main advantage of the analog autocorrelator over its digital counterpart (Se
 Dicke switching and calibration. Other data products: spectral kurtosis.
 
 Jansky and Temperature 
-\subsection{Time and frequency standards}
-\subsection{Telescope metadata}
-\subsection{File formats}
+% \subsection{Time and frequency standards}
+% \subsection{Telescope metadata}
+% \subsection{File formats}
 
 
 \subsection{Current technology}
@@ -604,7 +610,7 @@ Polyphase filterbanks have attractive characteristics for radio astronomy applic
 
 \section{Acknowledgements}
 
-The authors thank members of the CASPER collaboration for sharing their extensive knowledge with the wider community. D. Price thanks J. Moran for thorough discussion and debate on the virtues of polyphase filterbanks, J. Bunton for clarifying the history of PFBs in radio astronomy, and D. Werthimer and 
+The authors thank members of the CASPER collaboration for sharing their extensive knowledge with the wider community. D. Price thanks J. Moran for thorough discussion and debate on the virtues of polyphase filterbanks, J. Bunton for clarifying the history of PFBs in radio astronomy, and D. Werthimer and A. Wolszczan for providing the opportunity and motivation to develop this chapter.
 
 \bibliographystyle{ws-rv-van}
 \bibliography{spectrometers,references}

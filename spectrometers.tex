@@ -417,7 +417,7 @@ S'_{xx}(k) & = & \sum_{k=0}^{K-1}\left\langle x(n)x(n-k)\right\rangle e^{-2\pi i
 \end{eqnarray}
 That is, the finite summation causes convolution of the true PSD with a sinc() function. 
 
-The spacing of lags (i.e. delays) in an ACS determines how much bandwidth it can process without aliasing occurring. The Nyquist criterion requires two taps per wave period at the highest frequency signal of interest, with the maximum lag $k=\tau_{\rm{max}}$ setting the spectral resolution, $\Delta\nu = \sim 1 / \tau_{\rm{max}}$.
+The spacing of lags (i.e. delays, $\tau$) in an ACS determines how much bandwidth it can process without aliasing occurring. The Nyquist criterion requires two taps per wave period at the highest frequency signal of interest, with the maximum lag $\tau_{\rm{max}}$ setting the spectral resolution, $\Delta\nu = \sim 1 / \tau_{\rm{max}}$.
 
 \subsection{Fourier transform spectrometers}\label{sub:ftf}
 
@@ -505,7 +505,7 @@ An extension of the zoom spectrometer can be used to efficiently develop filterb
 
 To do so requires that the output of every first-stage channel is buffered so that there are $M$ samples per channel, then data must be rearranged and fed to the second-stage DFT in channel order. This reorder can be considered a matrix transpose (also called a \emph{cornerturn}), rearranging from ($N$, $M$) to ($M$, $N$) order.
 
-As an example, a zoom-style spectrometer with $N$=$M$=1024 has $N\times M / 2$=524,288 channels total. This approach is often used in the search for extra terrestrial intelligence (SETI), in order to achieve subhertz resolution over hundreds of megahertz input bandwidth.
+As an example, a zoom-style spectrometer with $N$=$M$=1024 has $N\times M / 2$=524,288 channels total. This approach is often used in the search for extra terrestrial intelligence (SETI)\cite{Siemion2011}, in order to achieve subhertz resolution over many hundreds of megahertz input bandwidth.
 
 
 \section{Alternative spectrometer implementations}
@@ -525,7 +525,7 @@ circuit and a low pass filter. The oscillator is typically varied, i.e.~swept, t
 
 An advantage of swept spectrometers is that they can operate over large RF bandwidths. However, as only a fraction of the band is detected at any one time, less integration time is available per frequency channel. 
 %For a swept spectrometer with $N$ channels with a sweep time of $t_{\rm{sweep}}$, the integration time available per channel is $t_{\rm{sweep}}/N$. It follows that  
-The RMS noise per channel in a swept spectrometer is $\sqrt{N}$ higher than an equivalent FTF spectrometer covering the entire RF bandwidth. As such, swept spectrometers are best suited for cases where signals of interest are strong and wideband. 
+The RMS noise per channel in a swept spectrometer is $\sqrt{N}$ higher than an equivalent FTF spectrometer with $N$ channels covering the entire RF bandwidth. As such, swept spectrometers are best suited for cases where signals of interest are strong and wideband. 
 
 \subsection{Analog filterbank}\label{analog-filter-bank}
 

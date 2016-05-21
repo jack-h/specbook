@@ -464,7 +464,7 @@ where $h_{p}(m)$ are coefficients from our prototype lowpass filter. If we follo
 Y(p) & = & \sum_{p=0}^{P-1}y_{p}(n')e^{-2\pi in'p/P}\\
  & = & \sum_{p=0}^{P-1}\sum_{m=0}^{M-1}h_{p}(m)x_{p}(n'-m)e^{-2\pi in'p/P}.
 \end{eqnarray}
-Comparing this form to Equation~\ref{eq:FIR-filter-decimated}, we recognise that the output
+Comparing this form to Equation~\ref{eq:FIR-polyphase-filter}, we recognise that the output
 of this structure is equivalent to a set of $\downarrow P$ decimating polyphase filters,
 %\begin{equation}
 %\mathbb{F}=\begin{Bmatrix}h_{k}(m), & k\in(0,P-1)\end{Bmatrix}

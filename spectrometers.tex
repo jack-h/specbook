@@ -560,7 +560,7 @@ Analog filterbanks may offer very wide bandwidths, but design of very narrowband
 
 An analog ACS uses analog circuitry to implement multipliers and propagation times through carefully constructed delay lines to implement the desired tap delays. 
 %A typical schematic of an analog ACS is shown in Fig.~\ref{fig:analog-autocorr}. Here, outputs of each correlator tap are digitized after a small amount of time-averaging. Further averaging can take place digitally before computation of the power spectrum via cosine transform. 
-Details of specific scientific deployments of analog autocorrelation spectrometers can be found in \cite{Erickson2007} and \cite{Harris1998}.
+An example implementation is given in Harris et. al. (1996) \cite{Harris1998}.
 
 The main advantage of the analog autocorrelator over its digital counterpart (Sec.~\ref{sub:acs}) is that digitization need only take place at a rate commensurate with the averaging period of the correlator, rather than the bandwidth of the input signals. For this reason, analog ACS spectrometers are usually seen in systems that have instantaneous bandwidths of many gigahertz. Their major disadvantage is that the number of physical components required scales with the number of channels, making analog ACS systems with many channels --- readily implemented by digital systems ---  infeasible.
 

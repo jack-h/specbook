@@ -340,7 +340,7 @@ where $y(n)$ is the output sequence, and $h(k)$ is a set of $K$ coefficients use
 
 \begin{figure}
  \centering
- \includegraphics[width=0.8\textwidth]{./figures/fir_filter}
+ \includegraphics[width=0.8\textwidth]{./figures/fir_filter_v2}
  
  \caption{N-tap FIR filter block diagram. An FIR filter applies a weighted sum to the input sequence $x(n)$to compute the filtered signal $y(n)$. \label{fig:fir}}
 \end{figure}
@@ -398,14 +398,14 @@ Decimating polyphase filter structures are far more efficient than standard FIR-
 
 \subsection{The Fast Fourier Transform\label{sub:fft}}
 
-The Fast Fourier Transform\cite{Cooley1965, BookBrighamFFT} (FFT) is a highly efficient algorithm for computing the DFT of a regularly-sampled signal. When applied over blocks of length $N$ of a time stream we may write the $r$-th output of a DFT as
+The Fast Fourier Transform\cite{Cooley1965, BookBrighamFFT} (FFT) is a highly efficient algorithm for computing the DFT of a regularly-sampled signal. When applied over non-overlapping blocks of length $N$ of a time stream -- as done in FTF systems -- we may write the $r$-th output of a DFT as
 \begin{equation}
-X(k, rN)=\sum_{n=0}^{N-1}x(rN-n)e^{-2\pi ink/N}\label{eq:dft1}
+X(k, rN)=\sum_{n=0}^{N-1}x(rN-n)e^{-2\pi ink/N}\label{eq:dft_ts}
 \end{equation}
-By comparison with Eq.~\ref{eq:FIR-filter-decimated}, we recognize this as a bank of $N$ FIR filters, downsampled by $\downarrow N$. This is a key insight to understanding FFT-based filterbanks.
+By comparison with Eq.~\ref{eq:FIR-filter-decimated}, we recognize this as a bank of $N$ FIR filters, downsampled by $\downarrow N$. This is a key insight toward understanding DFT-based filterbanks: the DFT should be thought of as more than just a transformation from time to frequency domain.
 
 %with regularly-spaced samples\footnote{Nyquist and quadrature sampled signals have regularly spaced samples.}. T
-To directly compute the DFT (Eq.~\ref{eq:dft1})
+To directly compute the DFT 
 %\begin{equation}
 %X(k)=\sum_{n=0}^{N-1}x(n)e^{-2\pi ink/N}\label{eq:dft1}
 %\end{equation}
@@ -421,6 +421,13 @@ As discussed in Sec.~\ref{sec:intro}, there are two equivalent paths that may be
 The first digital spectrometer used for radio astronomy was developed by Weinreb\citet{Weinreb:1963p10042} in 1963 -- two years before the FFT algorithm was introduced by Cooley \& Tukey\cite{Cooley1965}. This 1-bit ACS was used to observe the 18-cm wavelength hydroxyl (OH) absorption line in the spectrum of Cassiopeia A, providing the first evidence of OH in the interstellar medium \citep{Weinreb:1963p9992}. The first reference to FTF spectrometers for radio astronomy can be found in Chikada et. al.\citet{Chikada:1987p10044}; however FTF spectrometers did not enjoy widespread adoption until much later. The PFB architecture was first introduced by Schafer\cite{Schafer1973} in 1973 and expounded by Bellanger\cite{Bellanger:1976p7898} in 1976, but was not introduced for the purposes of radio astronomy spectrometry until 1992\cite{Duluk1992}. Bunton\cite{Bunton2000} further popularized the PFB within radio astronomy in 2000, suggesting its use in radio interferometer correlator systems. Given their growing ubiquity, PFB systems (which are essentially enhanced FTF spectrometers) are detailed at length in Sec.~\ref{sub:pfb}.
 
 Spectrometers do not compute the true PSD, $S_{xx}(k)$; rather they compute an approximation, $S'_{xx}(k)$. Further, as a spectrometer has time resolution (Sec.~\ref{sub:time-res}), the spectrometer output has a time dimension, i.e. $S'_{xx} = S'_{xx}(k, r)$, where $r$ is the integration number. 
+
+%For example, to explicitly show the time resolution of an FTF spectrometer, we may write 
+%\begin{equation}
+%	S'_{xx}(k, r) =  \frac{1}{R} \sum_{r=0}^{R-1} \left|X(k, r'N)\right|^{2}
+%\end{equation}
+%using the DFT notation of Eq.~\ref{eq:dft_ts}, and explicitly $r'=r(RN)$ the time average of Eq.~\ref{eq:sxx1}
+
 
 \subsection{Autocorrelation spectrometers}\label{sub:acs}
 
@@ -475,8 +482,8 @@ y_{p}(n')=\sum_{m=0}^{M-1}h_{p}(m)x_{p}(n'-m),
 \end{equation}
 where $h_{p}(m)$ are coefficients from our prototype lowpass filter. If we follow this by a DFT, as in Fig.~\ref{fig:pfb_fir_fft}, we then have 
 \begin{eqnarray}
-Y(n') & = & \sum_{p=0}^{P-1}y_{p}(n')e^{-2\pi in'p/P}\\
- & = & \sum_{p=0}^{P-1}\sum_{m=0}^{M-1}[h_{p}(m)e^{-2\pi in'p/P}]x_{p}(n'-m). \label{eq:pfb-final}
+Y(k, n') & = & \sum_{p=0}^{P-1}y_{p}(n')e^{-2\pi ikp/P}\\
+ & = & \sum_{p=0}^{P-1}\sum_{m=0}^{M-1}[h_{p}(m)e^{-2\pi ikp/P}]x_{p}(n'-m). \label{eq:pfb-final}
 \end{eqnarray}
 Comparing this form to Eq.~\ref{eq:FIR-polyphase-filter}, we recognize that the output of this structure is equivalent to a set of $\downarrow P$ decimating polyphase filters,
 %\begin{equation}
@@ -494,7 +501,7 @@ Fig.~9 shows the action of a PFB FIR frontend on a data stream in several stages
 \begin{figure}
  \centering
  \includegraphics[width=\textwidth]{./figures/pfb_fir_fft_v2}
- \caption{Polyphase filterbank streaming implementation. A PFB is formed when a polyphase FIR filter structure is combined with a DFT. This diagram is an alternative, but equivalent, representation to Fig.~\ref{fig:pfb_chart}.\label{fig:pfb_fir_fft}}
+ \caption{Polyphase filterbank streaming implementation. A PFB is formed when a polyphase FIR filter structure is combined with a DFT. This diagram is an alternative, but equivalent, representation to Fig.~\ref{fig:pfb_chart}. Note that in this diagram, indexes $m$ and $p$ run from 1 instead of 0. \label{fig:pfb_fir_fft}}
 \end{figure}
 
 \begin{figure}
@@ -517,7 +524,8 @@ Fig.~9 shows the action of a PFB FIR frontend on a data stream in several stages
 
 \subsection{Zoom modes}
 
-The output of each channel of a DFT-based filterbank is a critically-sampled quadrature time stream of its own right (before the signal is squared, that is). Higher spectral resolution can be achieved by passing the output of a `coarse' first-stage filterbank channel into a secondary DFT to apply finer channelization, after which the samples may be squared and averaged to compute the PSD. Spectrometers that employ this approach are known as \emph{zoom spectrometers}. 
+The output of each channel of a DFT-based filterbank is a critically-sampled quadrature time stream of its own right. %(before the signal is squared, that is). 
+Higher spectral resolution can be achieved by passing the output of a `coarse' first-stage filterbank channel into a secondary DFT to apply finer channelization, after which the samples may be squared and averaged to compute the PSD. Spectrometers that employ this approach are known as \emph{zoom spectrometers}. 
 
 An extension of the zoom spectrometer can be used to efficiently develop filterbanks of many millions of channels. The second-stage filterbank in a zoom spectrometer only needs to run at $1/N$ the rate of its first-stage filterbank. If the second-stage DFT (of length $M$) is run at the same speed as the first-stage filterbank, one can run the second-stage DFT on every first-stage channel, instead of just selecting one. The result is a filterbank with $N\times M$ channels. 
 
@@ -647,9 +655,7 @@ GPU development is driven by the computer gaming industry, but over the last dec
 
 \paragraph{Field Programmable Gate Arrays (FPGAs)} are logic chips which incorporate many thousands of arithmetic cores in a fabric of programmable logic and interconnect. FPGAs excel at processing large data rates and provide low-level interfacing capabilities, allowing them to be directly connected to modern ADC chips. While an increasing number of off-the-shelf FPGA platforms are available, the needs of radio astronomers often motivate the design of custom boards. FPGAs are also relatively difficult to program, with specialist knowledge of their underlying hardware details needed to utilize them efficiently. FPGAs have smaller quantities of memory than CPU or GPU processors, and are often used for high data-rate, coarse-resolution spectrometers \citep{Stanko2005}.
 
-\paragraph{Application Specific Integrated Circuits (ASICs)} are custom-designed chips, with underlying circuitry dedicated to performing the operations defined by the designer. The custom nature of an ASIC makes it the most power-efficient computing platform though this efficiency comes at the cost of large development time and effort.
-With the increasing performance and power-efficiency of FPGAs and GPUs, ASIC development is not as prevalent in radio astronomy as it once was.
-However, ASICs may still be desirable for space-based spectrometers, where power-efficiency is paramount (see, for example, \cite{hochman2014splash}).
+\paragraph{Application Specific Integrated Circuits (ASICs)} are custom-designed chips, with underlying circuitry dedicated to performing the operations defined by the designer. The custom nature of an ASIC makes it the most power-efficient computing platform though this efficiency comes at the cost of large development time and effort. With the increasing performance and power-efficiency of FPGAs and GPUs, ASIC development is not as prevalent in radio astronomy as it once was. However, ASICs may still be desirable for space-based spectrometers, where power-efficiency is paramount\cite{hochman2014splash}.
 
 \paragraph{Hybrid systems.} In many cases a spectrometer may be heterogeneous in nature, with different stages of processing performed on different hardware platforms.
 Frequently, FPGAs are used to facilitate interfacing a high speed ADC chip with a network of CPU or GPU signal processing devices \citep{Siemion2011}. 

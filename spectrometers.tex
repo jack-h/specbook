@@ -476,11 +476,12 @@ The PFB exploits the fact that a lowpass filter with coefficients $h(k)$, can be
 %\begin{equation}
 %h_{\rm{bpf}}(k)=h_{\rm{lpf}}(k)e^{i\omega_{k}n}.\label{eq:lowpass-to-bandpass}
 %\end{equation}
-Now, suppose we have implemented a decimating lowpass polyphase filter. The output of each branch is 
+Now, suppose we have implemented a decimating lowpass polyphase filter (Eq.~\ref{eq:FIR-polyphase-filter}). The output of each branch is 
 \begin{equation}
 y_{p}(n')=\sum_{m=0}^{M-1}h_{p}(m)x_{p}(n'-m),
 \end{equation}
-where $h_{p}(m)$ are coefficients from our prototype lowpass filter. If we follow this by a DFT, as in Fig.~\ref{fig:pfb_fir_fft}, we then have 
+where $h_{p}(m)$ are coefficients from our prototype lowpass filter. Normally, we would sum across the $P$ branches (i.e. over the sub-filters $y_p$) to construct $y(n')$, as in Eq.\ref{eq:FIR-polyphase-filter}.
+Here is where we get tricky. If instead of just summing up the $P$ branches, we feed the branches (sub-filters) into a DFT with $P$ inputs, as in Fig.~\ref{fig:pfb_fir_fft}, we then have 
 \begin{eqnarray}
 Y(k, n') & = & \sum_{p=0}^{P-1}y_{p}(n')e^{-2\pi ikp/P}\\
  & = & \sum_{p=0}^{P-1}\sum_{m=0}^{M-1}[h_{p}(m)e^{-2\pi ikp/P}]x_{p}(n'-m). \label{eq:pfb-final}
@@ -494,7 +495,8 @@ where the central frequency of each filter is shifted by an amount $p/P$; this i
 The order of summations in Eq.~\ref{eq:pfb-final} is important; as written, it is more computationally efficient. The overhead of Eq.~\ref{eq:pfb-final} over a windowed FTF\footnote{As an aside: a windowed FTF can be considered to be a one-tap PFB.} is an extra $(M-1)P$ operations, due to the polyphase FIR frontend. Generally, the number of taps $M\ll P$, so the increase in required operations is moderate. Extra memory is also required for buffering of the $M\times P$ time samples and filter coefficients.  
 %For data sampled at the Nyquist rate $\nu_{s}$, this filterbank consists of $N$ filters spanning $-\nu_{s}/\mbox{2}$ to $\nu_{s}/\mbox{2}$, with each filter separated by $\nu_{s}/\mbox{2}N$.
 
-Two different representations of PFB spectrometers are given in Figures \ref{fig:pfb_fir_fft} and \ref{fig:pfb_chart}. Fig.~\ref{fig:pfb_fir_fft} shows a block diagram of a polyphase FIR frontend preceding an FFT. The commutator splits the input into $P$ branches, feeding a different `phase' of the input signal to each of the polyphase sub-filters. That is, the commutator applies a  $z^{-p}$ delay on each branch before a $\downarrow P$ downsampling. If the FFT in Fig.~\ref{fig:pfb_fir_fft} was replaced with a simple summation operation, the result would be a decimating polyphase FIR filter (Sec.~\ref{sub:pfir}). 
+Two different representations of PFB spectrometers are given in Figures \ref{fig:pfb_fir_fft} and \ref{fig:pfb_chart}. Fig.~\ref{fig:pfb_fir_fft} shows a block diagram of a polyphase FIR frontend preceding an FFT. The commutator splits the input into $P$ branches, feeding a different `phase' of the input signal to each of the polyphase sub-filters. That is, the commutator applies a  $z^{-p}$ delay on each branch before a $\downarrow P$ downsampling. 
+%If the FFT in Fig.~\ref{fig:pfb_fir_fft} was replaced with a simple summation operation, the result would be a decimating polyphase FIR filter (Sec.~\ref{sub:pfir}). 
 
 Fig.~9 shows the action of a PFB FIR frontend on a data stream in several stages. An input signal $x(n)$ of length $M\times P$ is first multiplied by filter coefficients $h(n)$. The data are then split into $M$ blocks of length $P$, and summed over $M$ taps. After this, a DFT of length $P$ is applied to form a filterbank, followed by squaring and time-averaging to compute the PSD.
 
